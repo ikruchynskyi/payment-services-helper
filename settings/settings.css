@@ -8,7 +8,7 @@ body {
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    background: rgba(79, 3, 3, 0.91);
+    background: rgb(82 11 11 / 91%);
     color: white;
 }
 
@@ -17,6 +17,7 @@ body {
     flex-direction: column;
     padding: 5px 0px;
 }
+
 button {
     margin: 5px 0px;
 }
@@ -71,7 +72,7 @@ button {
     position: absolute;
     width: 100%;
     height: 100%;
-    background: #111;
+    background: #032c4e;
     left: 0;
     top: 0;
     border-radius: 10px;
