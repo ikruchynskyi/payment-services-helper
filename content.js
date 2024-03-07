@@ -1,4 +1,6 @@
+var parentWindow;
 window.addEventListener('load', function () {
+    parentWindow = window;
 // Callback function to execute when a mutation is observed
     const PROD_CLIENT_ID = "AXgJpe2oER86DpKD05zLIJa6-GgkY--5X1FK2iZG3JwlMNX6GK0JJp4jqNwUUCcjZgrOoW2zmvYklMW4";
     const SANDBOX_CLIENT_ID = "AZo2s4pxyK9ZUajGazgMrWj_eWCNcz2ARYoDrLqr9LmwVbtAyJPYnZW49I_CttP2RCcImeoGJ6C_VRrT";
@@ -42,6 +44,39 @@ window.addEventListener('load', function () {
     const config = {childList: true, subtree: true};
     observer.observe(document, config);
 });
+
+chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+        if(request.message === "checkEnabledPaymentMethods") {
+            if (document.apsBorderAdded === true) {
+                let elements = document.getElementsByClassName("animated-border");
+                while (elements.length > 0) {
+                    elements[0].classList.remove('animated-border');
+                }
+                document.apsBorderAdded = false;
+                return;
+            }
+
+            var css = '.animated-border { border: 2px solid red;}',
+                head = document.head || document.getElementsByTagName('head')[0],
+                style = document.createElement('style');
+            head.appendChild(style);
+            style.appendChild(document.createTextNode(css));
+
+
+            let paymentMethods = document.getElementsByName("payment[method]");
+            for (let i in paymentMethods) {
+                let paymentMethod = paymentMethods[i];
+                if (paymentMethod !== "undefined") {
+                    if (paymentMethod.getAttribute("id").includes("payment_services")) {
+                        paymentMethods[i].parentElement.classList.add("animated-border");
+                        document.apsBorderAdded = true;
+                    }
+                }
+            }
+        }
+    }
+);
 
 window.onerror = function (errorMsg, url, lineNumber) {
     console.log('Error: ' + errorMsg + ' Script: ' + url + ' Line: ' + lineNumber);

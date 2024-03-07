@@ -8,15 +8,19 @@ body {
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    background: rgba(59, 57, 57, 0.91);
+    background: rgba(79, 3, 3, 0.91);
     color: white;
 }
 
 .wrapper{
     display:flex;
     flex-direction: column;
-    padding: 10px;
+    padding: 5px 0px;
 }
+button {
+    margin: 5px 0px;
+}
+
 .glow-on-hover {
     width: 220px;
     height: 50px;
