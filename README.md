@@ -2,7 +2,7 @@
 
 ## Purpose
 Extension loads usefull information which is associated with Payment Services into the browser's console
-![browser console](https://raw.githubusercontent.com/ikruchynskyi/payment-services-helper/main/misc/console_example.png)
+![browser console](https://raw.githubusercontent.com/ikruchynskyi/payment-services-helper/main/misc/console_example_1.png)
 
 ## How to use
 - Download project as a ZIP archive
