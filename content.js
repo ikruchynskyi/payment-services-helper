@@ -1,7 +1,7 @@
 var parentWindow;
 window.addEventListener('load', function () {
     parentWindow = window;
-// Callback function to execute when a mutation is observed
+
     const PROD_CLIENT_ID = "AXgJpe2oER86DpKD05zLIJa6-GgkY--5X1FK2iZG3JwlMNX6GK0JJp4jqNwUUCcjZgrOoW2zmvYklMW4";
     const SANDBOX_CLIENT_ID = "AZo2s4pxyK9ZUajGazgMrWj_eWCNcz2ARYoDrLqr9LmwVbtAyJPYnZW49I_CttP2RCcImeoGJ6C_VRrT";
     const MERCHANT_ID = "#MERCHANTID#";
@@ -13,10 +13,10 @@ window.addEventListener('load', function () {
         for (const mutation of mutationsList) {
             if (mutation.type === 'childList') {
                 mutation.addedNodes.forEach(node => {
-                    // Check if the added node is a <script> tag
+
                     if (node.tagName && node.tagName.toLowerCase() === 'script') {
                         if (node.src.includes("paypal.com/sdk")) {
-                            urlParams = new URL(node.src);
+                            let urlParams = new URL(node.src);
                             let clientIdParam= urlParams.searchParams.get('client-id');
                             let clientEnv = clientIdParam === PROD_CLIENT_ID ? 'production'
                                 : clientIdParam === SANDBOX_CLIENT_ID ? 'sandbox' : 'unknown';
@@ -32,7 +32,6 @@ window.addEventListener('load', function () {
                             console.log("Recent Webhook events: ", webHookList.replace(MERCHANT_ID, urlParams.searchParams.get('merchant-id')))
                             console.log("Latest errors: ", latestErrors.replace(MERCHANT_ID, urlParams.searchParams.get('merchant-id')))
                             console.log("Ingress requests: ", ingressRequests.replace(MERCHANT_ID, urlParams.searchParams.get('merchant-id')))
-
                         }
                     }
                 });
@@ -65,13 +64,19 @@ chrome.runtime.onMessage.addListener(
 
 
             let paymentMethods = document.getElementsByName("payment[method]");
-            for (let i in paymentMethods) {
-                if (paymentMethods[i] !== "undefined") {
-                    if (paymentMethods[i].getAttribute("id").includes("payment_services")) {
-                        paymentMethods[i].parentElement.classList.add("animated-border");
-                        document.apsBorderAdded = true;
-                    }
+            let smartButtons = document.getElementsByClassName("smart-buttons");
+
+
+            for (let i in Object.keys(paymentMethods)) {
+                if (paymentMethods[i].getAttribute("id").includes("payment_services")) {
+                    paymentMethods[i].parentElement.classList.add("animated-border");
+                    document.apsBorderAdded = true;
                 }
+            }
+
+            for (let i in Object.keys(smartButtons)) {
+                smartButtons[i].classList.add("animated-border");
+                document.apsBorderAdded = true;
             }
         }
     }
