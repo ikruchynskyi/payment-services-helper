@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var applePay = document.getElementById('validateApplePayCert');
     var checkPayPalSDK = document.getElementById('getPayPalSDK');
     var checkEnabledPaymentMethods = document.getElementById('checkEnabledPaymentMethods');
+    var getPaymentMethods = document.getElementById('getPaymentMethods');
 
     applePay.addEventListener('click', function () {
         let newUrl = tabConfig.url.protocol + "//" + tabConfig.domain + "/.well-known/apple-developer-merchantid-domain-association";
@@ -31,6 +32,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     checkEnabledPaymentMethods.addEventListener('click', function () {
         chrome.tabs.sendMessage(tabConfig.activeTab.id, {"message": "checkEnabledPaymentMethods"});
+    });
+
+    getPaymentMethods.addEventListener('click', function () {
+        chrome.tabs.sendMessage(tabConfig.activeTab.id, {"message": "getPaymentMethods"});
     });
 
     checkPayPalSDK.addEventListener('click', function () {

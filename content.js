@@ -86,9 +86,28 @@ chrome.runtime.onMessage.addListener(
         if (request.message === "printSDKHelper") {
             printSDKHelperInfo(request.data.payments.sdkParams.paypal[0].value);
         }
+
+        if (request.message === "getPaymentMethods") {
+            injectScript(chrome.runtime.getURL('inject.js'), 'body');
+        }
     }
 );
 
 window.onerror = function (errorMsg, url, lineNumber) {
     console.log('Error: ' + errorMsg + ' Script: ' + url + ' Line: ' + lineNumber);
+}
+
+function injectScript(file_path, tag) {
+    const scripts = document.querySelectorAll('script');
+    for (let i = 0; i < scripts.length; i++) {
+        if (scripts[i].getAttribute('src') === file_path) {
+            return;
+        }
+    }
+
+    var node = document.getElementsByTagName(tag)[0];
+    var script = document.createElement('script');
+    script.setAttribute('type', 'text/javascript');
+    script.setAttribute('src', file_path);
+    node.appendChild(script);
 }
