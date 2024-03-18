@@ -3,6 +3,4 @@ let payments = window?.checkoutConfig?.payment;
 if (payments) {
     const tableData = Object.keys(payments).map(key => ({ key, isVisible: payments[key].isVisible }));
     console.table(tableData);
-} else {
-    alert("Checkout config was not found")
 }
