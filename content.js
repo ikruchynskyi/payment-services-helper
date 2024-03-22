@@ -7,25 +7,30 @@ var latestErrors = "https://splunk.or1.adobe.net/en-US/app/search/search?earlies
 var ingressRequests = "https://splunk.or1.adobe.net/en-US/app/search/search?earliest=-1d%40d&latest=now&q=search%20%5Bsearch%20%5Bsearch%20#MERCHANTID#%20message.mpMerchantId!%3D%22%22%20%7C%20table%20message.mpMerchantId%20%7C%20uniq%5D%20message.trace_id!%3D%22%22%20%7C%20table%20message.trace_id%5D%20INGRESS%20%7C%20table%20message.timestamp%20message.message.remote%20message.message.requestPath%20message.message.requestMethod%20message.message.requestPath%20message.trace_id%20message.requestId%20message.message.headers.host%20message.message.headers.magento-api-key%20message.message.headers.x-request-user-agent%20message.message.headers.x-gw-metadata&display.page.search.mode=verbose&dispatch.sample_ratio=1&display.events.type=list&display.page.search.tab=statistics&display.general.type=statistics";
 var transactionStat = "https://splunk.or1.adobe.net/en-US/app/search/search?earliest=-1d%40d&latest=now&q=search%20#MERCHANTID#%20message.providerTransactionId!%3Dnull%20%7C%20table%20message.type%20message.amount%20%7C%20stats%20sum(message.amount)%20by%20message.type&display.page.search.mode=fast&dispatch.sample_ratio=1&display.page.search.tab=visualizations&display.general.type=visualizations&display.visualizations.charting.chart=pie";
 var debugIds = "https://splunk.or1.adobe.net/en-US/app/search/search?earliest=-1d%40d&latest=now&q=search%20%5Bsearch%20#MERCHANTID#%20message.mpMerchantId!%3D%22%22%20%7C%20rename%20message.mpMerchantId%20%20AS%20message.merchantId%20%7C%20table%20message.merchantId%20%7C%20dedup%20message.merchantId%5D%20PayPalPaymentService%20message.debugId!%3D%22%22%20%7C%20table%20message.debugId&display.page.search.mode=verbose&dispatch.sample_ratio=1&display.page.search.tab=statistics&display.general.type=statistics"
+var merchantId;
+
 printSDKHelperInfo = (src) => {
     let urlParams = new URL(src);
     let clientIdParam = urlParams.searchParams.get('client-id');
     let clientEnv = clientIdParam === PROD_CLIENT_ID ? 'production'
         : clientIdParam === SANDBOX_CLIENT_ID ? 'sandbox' : 'unknown';
-    let merchantId = urlParams.searchParams.get('merchant-id');
+    merchantId = urlParams.searchParams.get('merchant-id');
     console.table({
         "merchantID": merchantId,
         "clientID": clientEnv,
         "intent": urlParams.searchParams.get('intent'),
         "enabled-funding": urlParams.searchParams.get('enable-funding'),
     });
+};
+
+printSplunkLinks = () => {
     console.log("Recent Transactions: ", recentTransaction.replace(MERCHANT_ID, merchantId));
     console.log("Recent Webhook events: ", webHookList.replace(MERCHANT_ID, merchantId));
     console.log("Latest errors: ", latestErrors.replace(MERCHANT_ID, merchantId));
     console.log("Ingress requests: ", ingressRequests.replace(MERCHANT_ID, merchantId));
     console.log("Transaction stats:", transactionStat.replace(MERCHANT_ID, merchantId));
     console.log("Latest PayPal DebugIds: :", debugIds.replace(MERCHANT_ID, merchantId));
-};
+}
 
 window.addEventListener('load', function () {
     const mutationCallback = function (mutationsList, observer) {
@@ -84,7 +89,11 @@ chrome.runtime.onMessage.addListener(
         }
 
         if (request.message === "printSDKHelper") {
-            printSDKHelperInfo(request.data.payments.sdkParams.paypal[0].value);
+            for (const [key, data] of Object.entries(request.data.payments.sdkParams)) {
+                console.log('SDK Params for ' + key);
+                printSDKHelperInfo(request.data.payments.sdkParams[key][0].value);
+            }
+            printSplunkLinks();
         }
 
         if (request.message === "getPaymentMethods") {
