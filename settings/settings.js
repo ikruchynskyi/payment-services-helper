@@ -2,7 +2,7 @@ const APPLE_CERT = "7B227073704964223A224635424630414332433631413141323831304337
 const WIKI_SEARCH = "https://wiki.corp.adobe.com/dosearchsite.action?cql=siteSearch+~+%22#PLACEHOLDER#%22+and+space+in+(%22CTAGRP%22%2C%22CENG%22)+and+type+%3D+%22page%22&queryString=#PLACEHOLDER#";
 alloy("configure", {
     "edgeConfigId": "76606621-b8db-4b9b-aa7d-56c2ab144bce",
-    "orgId":"12E4334E6310FFFE0A495E9E@AdobeOrg"
+    "orgId": "12E4334E6310FFFE0A495E9E@AdobeOrg"
 });
 document.addEventListener('DOMContentLoaded', function () {
     var tabConfig = {};
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     searchInput.addEventListener('keydown', function (event) {
         if (event.keyCode === 13) {
-            chrome.tabs.create({ url: WIKI_SEARCH.replaceAll("#PLACEHOLDER#", event.currentTarget.value.replace(" ", "+")) });
+            chrome.tabs.create({url: WIKI_SEARCH.replaceAll("#PLACEHOLDER#", event.currentTarget.value.replace(" ", "+"))});
         }
     });
 
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!isButton) {
             return;
         }
-        console.log("sending event.. :",  {"click": event.target.id});
+        console.log("sending event.. :", {"click": event.target.id});
         alloy("sendEvent", {
             data: {
                 __adobe: {
@@ -84,7 +84,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
             }
-        });
+        })
+            .then(function (result) {
+                console.log("The sendEvent command succeeded.", result);
+            })
+            .catch(function (error) {
+                console.log("The sendEvent command failed.", error);
+            });
     })
 });
 
