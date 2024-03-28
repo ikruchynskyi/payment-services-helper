@@ -7,7 +7,7 @@
     <title>Payment Services Helper Settings</title>
 </head>
 <body>
-<div class="wrapper">
+<div id="wrapper">
     <div class="content">
         <button class="glow-on-hover" type="button" id="validateApplePayCert">Validate Apple Pay Certificate</button>
         <button class="glow-on-hover" type="button" id="checkEnabledPaymentMethods">Locate Payment Services on Page</button>
@@ -17,11 +17,12 @@
     </div>
     <div id="mySidenav" class="sidenav">
         <a href="javascript:void(0)" class="closebtn" id="closebtn">&times;</a>
-        <a href="https://wiki.corp.adobe.com/display/merchantsolutions/Payment+Services" target="_blank">Engineering Docs</a>
-        <a href="https://wiki.corp.adobe.com/display/CENG/Payments+Services+Runbooks" target="_blank">Support Runbooks</a>
+        <a href="https://wiki.corp.adobe.com/display/merchantsolutions/Payment+Services" target="_blank" id="engDocs">Engineering Docs</a>
+        <a href="https://wiki.corp.adobe.com/display/CENG/Payments+Services+Runbooks" target="_blank" id="supportRunbooks">Support Runbooks</a>
         <input type="text" id="searchQuery" placeholder="Search for known issues" />
     </div>
 </div>
+<script src="analytics.js"></script>
 <script src="settings.js"></script>
 </body>
 </html>
