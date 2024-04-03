@@ -77,10 +77,15 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         console.log("sending event.. :", {"click": event.target.id});
         alloy("sendEvent", {
-            data: {
-                __adobe: {
-                    target: {
-                        "click": event.target.id,
+            xdm: {
+                eventType: "click",
+                web: {
+                    name: "pageName",
+                    url: "URL"
+                },
+                eventData: {
+                    _cfectaginternal: {
+                        value: event.target.id
                     }
                 }
             }
