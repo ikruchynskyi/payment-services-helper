@@ -91,7 +91,12 @@ chrome.runtime.onMessage.addListener(
         if (request.message === "printSDKHelper") {
             for (const [key, data] of Object.entries(request.data.payments.sdkParams)) {
                 console.log('SDK Params for ' + key);
-                printSDKHelperInfo(request.data.payments.sdkParams[key][0].value);
+                if (data[0]) {
+                    src = data[0].value
+                } else {
+                    src = data.value
+                }
+                printSDKHelperInfo(src);
             }
             printSplunkLinks();
         }
