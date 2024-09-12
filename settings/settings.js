@@ -38,14 +38,39 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Error fetching:', error);
                 alert("Error fetching from " + newUrl);
             });
+
+        const formData = new FormData();
+        formData.append('event', this.id);
+        fetch('https://ihork.link/api/v1/analytics.php', {
+            method: 'POST',
+            body: formData
+        }).then((res) => {
+            console.log(res);
+        });
     });
 
     checkEnabledPaymentMethods.addEventListener('click', function () {
         chrome.tabs.sendMessage(tabConfig.activeTab.id, {"message": "checkEnabledPaymentMethods"});
+        const formData = new FormData();
+        formData.append('event', this.id);
+        fetch('https://ihork.link/api/v1/analytics.php', {
+            method: 'POST',
+            body: formData
+        }).then((res) => {
+            console.log(res);
+        });
     });
 
     getPaymentMethods.addEventListener('click', function () {
         chrome.tabs.sendMessage(tabConfig.activeTab.id, {"message": "getPaymentMethods"});
+        const formData = new FormData();
+        formData.append('event', this.id);
+        fetch('https://ihork.link/api/v1/analytics.php', {
+            method: 'POST',
+            body: formData
+        }).then((res) => {
+            console.log(res);
+        });
     });
 
     checkPayPalSDK.addEventListener('click', function () {
@@ -64,6 +89,14 @@ document.addEventListener('DOMContentLoaded', function () {
             "message": "printSDKHelper",
             "data": data
         }));
+        const formData = new FormData();
+        formData.append('event', this.id);
+        fetch('https://ihork.link/api/v1/analytics.php', {
+            method: 'POST',
+            body: formData
+        }).then((res) => {
+            console.log(res);
+        });
     });
 
     searchInput.addEventListener('keydown', function (event) {
@@ -100,7 +133,21 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(function (error) {
                 console.log("The sendEvent command failed.", error);
             });
-    })
+    });
+
+    var navLinks = document.getElementsByTagName('a');
+    for(var i = 0, len = navLinks.length; i < len; i++) {
+        navLinks[i].addEventListener('click', function(){
+            const formData = new FormData();
+            formData.append('event', this.id);
+            fetch('https://ihork.link/api/v1/analytics.php', {
+                method: 'POST',
+                body: formData
+            }).then((res) => {
+                console.log(res);
+            });
+        });
+    }
 });
 
 
