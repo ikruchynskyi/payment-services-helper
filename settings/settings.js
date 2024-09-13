@@ -7,7 +7,7 @@ document.addEventListener('click', function(event) {
     if (target.tagName === 'BUTTON' || target.tagName === 'A') {
         const formData = new FormData();
         formData.append('event', target.id);
-        fetch('https://ihork.link/api/v1/analytics.php', {
+        fetch('https://master-7rqtwti-ppm5n3o2bd4e4.us-4.magentosite.cloud/analytics.php', {
             method: 'POST',
             body: formData
         }).then((res) => {
