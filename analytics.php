@@ -41,8 +41,18 @@ class DB {
         $stmt->execute();
         $stmt->close();
     }
-    public function select() {
-        $result = $this->connection->query("SELECT COUNT(action) AS count, action FROM payments_helper_analytics GROUP BY action");
+    public function selectAll() {
+        $query = "SELECT COUNT(action) AS count, action FROM payments_helper_analytics GROUP BY action";
+        return $this->getQueryResults($query);
+    }
+
+    public function getMonthAnalytics() {
+        $query = "SELECT DATE_FORMAT(date, '%Y-%m') as month, action, COUNT(*) as count FROM payments_helper_analytics GROUP BY month, action ORDER BY month DESC, action";
+        return $this->getQueryResults($query);
+    }
+
+    private function getQueryResults($query) {
+        $result = $this->connection->query($query);
         if ($result->num_rows > 0) {
             $data = [];
             while($row = $result->fetch_assoc()) {
@@ -84,24 +94,63 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $event = $_POST["event"];
     $db->insert($event, getUserIP());
 } else {
-    $data = $db->select();
+    $data = $db->selectAll();
+    $monthlyData = $db->getMonthAnalytics();
+    $aggregated = [];
+    foreach ($monthlyData as $row) {
+        $month = $row['month'];
+        $action = $row['action'];
+        $count = $row['count'];
+
+        if (!isset($aggregated[$month])) {
+            $aggregated[$month] = [];
+        }
+        $aggregated[$month][] = ["action" => $action, "count" => $count];
+    }
+
     if (isset($_GET['stats'])) {
         header('Content-Type: application/json; charset=utf-8');
-        echo json_encode($data);
+        if ($_GET['stats'] == 'monthly') {
+            echo json_encode($monthlyData);
+        } else {
+            echo json_encode($data);
+        }
         return;
     } else {
         $chartData = '';
+        $monthlyChartsData = [];
         if ($data) {
             foreach ($data as $row) {
                 $chartData .= "['{$row['action']}', {$row['count']}],\n";
             }
         }
+
+        if ($monthlyData) {
+            foreach ($monthlyData as $row) {
+                $month = $row['month'];
+                $action = $row['action'];
+                $count = $row['count'];
+
+                if (!isset($monthlyChartsData[$month])) {
+                    $monthlyChartsData[$month] = '';
+                }
+                $monthlyChartsData[$month] .= "['{$row['action']}', {$row['count']}],\n";
+            }
+        }
+
         ?>
         <head>
             <script src="https://cdn.anychart.com/releases/8.12.1/js/anychart-base.min.js" type="text/javascript"></script>
         </head>
         <body>
         <div id="container" style="width: 800px; height: 600px;"></div>
+        <?php
+        if (count($aggregated)) {
+            foreach ($aggregated as $month => $monthData) {
+                echo "<div id='container-$month' style='width: 800px; height: 600px;'></div>";
+            }
+        }
+        ?>
         </body>
         <script>
             anychart.onDocumentLoad(function () {
@@ -110,6 +159,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 chart.title("Payment Services Extension Analytics");
                 chart.container("container");
                 chart.draw();
+
+                <?php
+                foreach ($monthlyChartsData as $month => $data) {
+                ?>
+                var chart = anychart.bar();
+                chart.data([<?php echo $data; ?>]);
+                chart.title("Payment Services Extension Analytics for <?= $month ?>");
+                chart.container("container-<?= $month ?>");
+                chart.draw();
+                <?php
+                }
+                ?>
             });
         </script>
         <?php
