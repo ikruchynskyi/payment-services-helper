@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var checkEnabledPaymentMethods = document.getElementById('checkEnabledPaymentMethods');
     var getPaymentMethods = document.getElementById('getPaymentMethods');
     var searchInput = document.getElementById('searchQuery');
+    var webReqs = document.getElementById('webReqs');
 
     applePay.addEventListener('click', function () {
         let newUrl = tabConfig.url.protocol + "//" + tabConfig.domain + "/.well-known/apple-developer-merchantid-domain-association";
