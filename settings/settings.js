@@ -60,6 +60,12 @@ document.addEventListener('DOMContentLoaded', function () {
         chrome.tabs.sendMessage(tabConfig.activeTab.id, {"message": "getPaymentMethods"});
     });
 
+    webReqs.addEventListener('click', function () {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            chrome.runtime.sendMessage({ message: 'getHar', tabId: tabs[0].id });
+        });
+    });
+
     checkPayPalSDK.addEventListener('click', function () {
         let newUrl = tabConfig.url.protocol + "//" + tabConfig.domain + "/customer/section/load/?sections=payments";
         resp = fetch(newUrl)
