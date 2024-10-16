@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', function() {
       const request = requests[requestId];
       console.log(request);
       const requestDiv = document.createElement('div');
-      requestDiv.style.border = '1px solid #ccc';
       requestDiv.textContent = `URL: ${request.request.url}, Method: ${request.request.method}\n`;
       if (request.response) {
         requestDiv.textContent += `${request.response.statusText}, Status: ${request.response.status}`;
@@ -39,4 +38,14 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       resultsDiv.appendChild(requestDiv);
     }
+
+    document.querySelectorAll("#results div").forEach(function(div) {
+      div.addEventListener("click", function() {
+        let divText = this.textContent;
+        let encodedText = encodeURIComponent(divText);
+        let url = `https://www.perplexity.ai?q=${encodedText}`;
+        window.open(url, '_blank');
+      });
+    });
   }
+
