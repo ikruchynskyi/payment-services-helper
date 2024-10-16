@@ -88,6 +88,8 @@ function saveAndDetach(tabId) {
     // saveHAR(networkLogs);
   });
 
+  chrome.storage.local.set({'attachedIframes': iframes}, () => {});
+
   chrome.windows.create({
     url: 'results.html',
     type: 'popup'
