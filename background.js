@@ -1,17 +1,35 @@
 let debuggerAttached = false;
 let networkLogs = {};
+let iframes = {};
+
 chrome.runtime.onMessage.addListener(function (request) {
     if (request.message === "getHar") {
         tabId = request.tabId;
         if (!debuggerAttached) {
+          debuggerAttached = true;
+          chrome.debugger.getTargets((targets) => {
+            if (targets) {
+              for (let target of targets) {
+                if (target.url.includes("payments")) {
+                  iframes[target.id] = target;
+                  chrome.debugger.attach({ targetId: target.id }, "1.3", () => {
+                    if (chrome.runtime.lastError) {
+                      console.error(chrome.runtime.lastError.message);
+                      return;
+                    }
+                    chrome.debugger.sendCommand({ targetId: target.id }, "Network.enable", {}, () => {});
+                  });
+                }
+              }
+            }
+          });
+
             chrome.debugger.attach({ tabId: tabId }, "1.3", () => {
               if (chrome.runtime.lastError) {
                 console.error(chrome.runtime.lastError.message);
                 return;
               }
-              debuggerAttached = true;
-              chrome.debugger.sendCommand({ tabId: tabId }, "Network.enable", {}, () => {
-              });
+              chrome.debugger.sendCommand({ tabId: tabId }, "Network.enable", {}, () => {});
               captureHAR(tabId);
             });
           } else {
@@ -24,7 +42,7 @@ chrome.runtime.onMessage.addListener(function (request) {
 
 function captureHAR(tabId) {
   chrome.debugger.onEvent.addListener((source, method, params) => {
-    if (source.tabId === tabId && method === "Network.requestWillBeSent") {
+    if (method === "Network.requestWillBeSent") {
       networkLogs[params.requestId] = {
         request: params.request
       };
@@ -48,6 +66,14 @@ function captureHAR(tabId) {
 }
 
 function saveAndDetach(tabId) {
+  if (iframes) {
+    for (let iframeId in iframes) {
+      chrome.debugger.sendCommand({ targetId: iframeId }, "Network.disable", () => {
+        chrome.debugger.detach({ targetId: iframeId }, () => {});
+      });
+    }
+    iframes = {};
+  }
   chrome.debugger.sendCommand({ tabId }, "Network.disable", () => {
     chrome.debugger.detach({ tabId }, () => {
       debuggerAttached = false;
