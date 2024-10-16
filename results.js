@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
       } else {
         const heading = document.getElementById('heading');
         const h2 = document.createElement('h2');
-        h2.textContent = 'No failed requests found. If Checkout was failde, please inspect Console and Network tab';
+        h2.textContent = 'No failed requests found. If Checkout was failed, please inspect Console and Network tab';
         heading.appendChild(h2);
       }
     });
