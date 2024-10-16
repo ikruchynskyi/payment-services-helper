@@ -43,7 +43,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     alert("Old payment services certificate detected! Please update Payment Services module");
                 }
                 else {
-                    alert("Apple Certificate is NOT VALID:\n" + data);
+                    alert("Apple Certificate is NOT VALID:\n Console command to share with client copied to the clipboard\n" + data);
+                    navigator.clipboard.writeText("Please analyse if Apple Pay Domain Verification certificate is accessible. Next CLI command can help with investigation: \ncurl -IL " + tabConfig.url.protocol + "//" + tabConfig.domain + "/.well-known/apple-developer-merchantid-domain-association");
                 }
             })
             .catch(error => {
