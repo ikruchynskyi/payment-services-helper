@@ -29,13 +29,13 @@ document.addEventListener('DOMContentLoaded', function() {
       requestDiv.textContent = `URL: ${request.request.url}, Method: ${request.request.method}\n`;
       if (request.response) {
         requestDiv.textContent += `${request.response.statusText}, Status: ${request.response.status}`;
-      }
-      if (request.response.body) {
-        let pre = document.createElement('pre');
-        let jsonObject = JSON.parse(request.response.body);
-        let prettyJson = JSON.stringify(jsonObject, null, 2);
-        pre.textContent = prettyJson;
-        requestDiv.appendChild(pre);
+        if (request.response.body) {
+          let pre = document.createElement('pre');
+          let jsonObject = JSON.parse(request.response.body);
+          let prettyJson = JSON.stringify(jsonObject, null, 2);
+          pre.textContent = prettyJson;
+          requestDiv.appendChild(pre);
+        }
       }
       resultsDiv.appendChild(requestDiv);
     }
