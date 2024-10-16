@@ -10,7 +10,7 @@ chrome.runtime.onMessage.addListener(function (request) {
           chrome.debugger.getTargets((targets) => {
             if (targets) {
               for (let target of targets) {
-                if (target.url.includes("payments")) {
+                if (target.url.includes("payments") || target.url.includes("paypal")) {
                   iframes[target.id] = target;
                   chrome.debugger.attach({ targetId: target.id }, "1.3", () => {
                     if (chrome.runtime.lastError) {
@@ -51,7 +51,6 @@ function captureHAR(tabId) {
           networkLogs[params.requestId]['response'] = params['response'];
           chrome.debugger.sendCommand({targetId: source.targetId}, "Network.getResponseBody", 
             {"requestId": params.requestId}, function(response) {
-              console.log(response);
               networkLogs[params.requestId]['response']['body'] = response.body;
             });
         } else {
