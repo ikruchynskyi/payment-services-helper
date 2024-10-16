@@ -49,6 +49,11 @@ function captureHAR(tabId) {
     }  else if (method === "Network.responseReceived") {
         if (networkLogs[params.requestId] && params.response.status >= 400) {
           networkLogs[params.requestId]['response'] = params['response'];
+          chrome.debugger.sendCommand({targetId: source.targetId}, "Network.getResponseBody", 
+            {"requestId": params.requestId}, function(response) {
+              console.log(response);
+              networkLogs[params.requestId]['response']['body'] = response.body;
+            });
         } else {
           delete networkLogs[params.requestId];
         }

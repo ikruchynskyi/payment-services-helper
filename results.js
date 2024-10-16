@@ -5,18 +5,20 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(requests);
         displayRequests(requests);
       } else {
-        const heading = document.createElement('h2');
-        heading.textContent = 'The issue might be in the failed JS or failed requests to PayPal. Please inspect Console and Network tab';
-        document.getElementById('results').appendChild(heading);
+        const heading = document.getElementById('heading');
+        const h2 = document.createElement('h2');
+        h2.textContent = 'No failed requests found. If Checkout was failde, please inspect Console and Network tab';
+        heading.appendChild(h2);
       }
     });
   });
   
   function displayRequests(requests) {
     const resultsDiv = document.getElementById('results');
-    const heading = document.createElement('h2');
-    heading.textContent += "Next requests failed during checkout and might be cause of the issue:.\n";
-    resultsDiv.appendChild(heading);
+    const heading = document.getElementById('heading');
+    const h2 = document.createElement('h2');
+    h2.textContent = "Next requests failed during checkout and might be cause of the issue:";
+    heading.appendChild(h2);
     resultsDiv.textContent += "Request details:\n";
 
     for (let requestId in requests) {
@@ -24,9 +26,16 @@ document.addEventListener('DOMContentLoaded', function() {
       console.log(request);
       const requestDiv = document.createElement('div');
       requestDiv.style.border = '1px solid #ccc';
-      requestDiv.textContent = `URL: ${request.request.url}, Method: ${request.request.method}`;
+      requestDiv.textContent = `URL: ${request.request.url}, Method: ${request.request.method}\n`;
       if (request.response) {
-        requestDiv.textContent += ` ${request.response.statusText}, Status: ${request.response.status}`;
+        requestDiv.textContent += `${request.response.statusText}, Status: ${request.response.status}`;
+      }
+      if (request.response.body) {
+        let pre = document.createElement('pre');
+        let jsonObject = JSON.parse(request.response.body);
+        let prettyJson = JSON.stringify(jsonObject, null, 2);
+        pre.textContent = prettyJson;
+        requestDiv.appendChild(pre);
       }
       resultsDiv.appendChild(requestDiv);
     }
