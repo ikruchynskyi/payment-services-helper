@@ -16,6 +16,12 @@ document.addEventListener('click', function(event) {
     }
 });
 
+document.querySelectorAll('.content a').forEach(function(element) {
+    element.addEventListener('click', function(event) {
+        event.preventDefault();
+    });
+});
+
 document.addEventListener('DOMContentLoaded', function () {
     var tabConfig = {};
     chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
