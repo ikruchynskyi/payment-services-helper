@@ -96,11 +96,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         };
-        if (checkRestApi()) {
-            checkCname();
-        } else {
-            alert("PROBABLY NOT MAGENTO WEBSITE OR NO REST API AVAILABLE.");
-        }
+        checkRestApi().then(function(res) {
+            if (res) {
+                checkCname();
+            } else {
+                alert("PROBABLY NOT MAGENTO WEBSITE OR NO REST API AVAILABLE.");
+            }
+        });
     });
 
     getPaymentMethods.addEventListener('click', function () {
