@@ -68,6 +68,12 @@ document.addEventListener('DOMContentLoaded', function () {
             alert("MAGENTO CLOUD WEBSITE");
             return;
         }
+        var checkRestApi = async function() {
+            let url = tabConfig.url.protocol + "//" + tabConfig.domain + "/rest/default/V1/search?searchCriteria";
+            let response = await fetch(url);
+            return response.status == 500;
+        };
+
         var checkCname = async function () {
             var response = await (fetch('https://networkcalc.com/api/dns/lookup/' + tabConfig.domain).catch(handleError));
             if (response.ok) {
@@ -84,8 +90,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         };
-
-        checkCname();
+        if (checkRestApi()) {
+            checkCname();
+        } else {
+            alert("PROBABLY NOT MAGENTO WEBSITE OR NO REST API AVAILABLE.");
+        }
     });
 
     getPaymentMethods.addEventListener('click', function () {
