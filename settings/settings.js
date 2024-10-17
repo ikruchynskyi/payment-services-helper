@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var getPaymentMethods = document.getElementById('getPaymentMethods');
     var searchInput = document.getElementById('searchQuery');
     var webReqs = document.getElementById('webReqs');
+    var isFastly = document.getElementById('isFastly');
 
     applePay.addEventListener('click', function () {
         let newUrl = tabConfig.url.protocol + "//" + tabConfig.domain + "/.well-known/apple-developer-merchantid-domain-association";
@@ -55,6 +56,36 @@ document.addEventListener('DOMContentLoaded', function () {
 
     checkEnabledPaymentMethods.addEventListener('click', function () {
         chrome.tabs.sendMessage(tabConfig.activeTab.id, {"message": "checkEnabledPaymentMethods"});
+    });
+
+    isFastly.addEventListener('click', function () {
+        var handleError = function (err) {
+            alert("Network error");
+            console.warn(err);
+        };
+
+        if (tabConfig.domain.includes("magentosite.cloud")) {
+            alert("MAGENTO CLOUD WEBSITE");
+            return;
+        }
+        var checkCname = async function () {
+            var response = await (fetch('https://networkcalc.com/api/dns/lookup/' + tabConfig.domain).catch(handleError));
+            if (response.ok) {
+                var json = await response.json();
+                var cname = json?.records?.CNAME[0]?.address;
+                if (cname !== undefined) {
+                    if (cname == "prod.magentocloud.map.fastly.net") {
+                        alert("MAGENTO CLOUD WEBSITE");
+                    } else {
+                        alert("NOT MAGENTO CLOUD WEBSITE");
+                    }
+                } else {
+                    alert("PROBABLY NOT MAGENTO CLOUD WEBSITE");
+                }
+            }
+        };
+
+        checkCname();
     });
 
     getPaymentMethods.addEventListener('click', function () {
