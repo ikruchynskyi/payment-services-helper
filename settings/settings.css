@@ -105,16 +105,19 @@ input {
 }
 
 .sidenav a, .content a {
-    padding: 8px 8px 8px 32px;
+    padding: 8px 3px;
     text-decoration: none;
     font-size: 14px;
     color: #818181;
     display: block;
     transition: 0.3s;
+    border: 1px ridge transparent;
 }
 
 .sidenav a:hover, .content a:hover {
     color: #f1f1f1;
+    transition: 0.3s;
+    border: 1px ridge #818181;
 }
 
 .sidenav .closebtn {
