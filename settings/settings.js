@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var webReqs = document.getElementById('webReqs');
     var isFastly = document.getElementById('isFastly');
     var isHyva = document.getElementById('isHyva');
+    var getMixins = document.getElementById('getMixins');
 
     applePay.addEventListener('click', function () {
         let newUrl = tabConfig.url.protocol + "//" + tabConfig.domain + "/.well-known/apple-developer-merchantid-domain-association";
@@ -67,6 +68,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     isHyva.addEventListener('click', function () {
         chrome.tabs.sendMessage(tabConfig.activeTab.id, {"message": "isHyva"});
+    });
+
+    getMixins.addEventListener('click', function () {
+        chrome.tabs.sendMessage(tabConfig.activeTab.id, {"message": "getMixins"});
     });
 
     isFastly.addEventListener('click', function () {

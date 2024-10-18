@@ -25,7 +25,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["inject/getCheckoutPayments.js", "inject/isHyva.js"],
+      "resources": ["inject/getCheckoutPayments.js", "inject/isHyva.js", "inject/getMixins.js"],
       "matches": ["<all_urls>"]
     }
   ]
