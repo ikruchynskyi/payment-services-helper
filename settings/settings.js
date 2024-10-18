@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var searchInput = document.getElementById('searchQuery');
     var webReqs = document.getElementById('webReqs');
     var isFastly = document.getElementById('isFastly');
+    var isHyva = document.getElementById('isHyva');
 
     applePay.addEventListener('click', function () {
         let newUrl = tabConfig.url.protocol + "//" + tabConfig.domain + "/.well-known/apple-developer-merchantid-domain-association";
@@ -62,6 +63,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     checkEnabledPaymentMethods.addEventListener('click', function () {
         chrome.tabs.sendMessage(tabConfig.activeTab.id, {"message": "checkEnabledPaymentMethods"});
+    });
+
+    isHyva.addEventListener('click', function () {
+        chrome.tabs.sendMessage(tabConfig.activeTab.id, {"message": "isHyva"});
     });
 
     isFastly.addEventListener('click', function () {
@@ -89,10 +94,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (cname == "prod.magentocloud.map.fastly.net") {
                         alert("MAGENTO CLOUD WEBSITE");
                     } else {
-                        alert("NOT MAGENTO CLOUD WEBSITE");
+                        alert("IT'S MAGENTO, BUT NOT MAGENTO CLOUD WEBSITE");
                     }
                 } else {
-                    alert("PROBABLY NOT MAGENTO CLOUD WEBSITE");
+                    alert("IT'S MAGENTO, BUT NOT MAGENTO CLOUD WEBSITE");
                 }
             }
         };
@@ -100,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (res) {
                 checkCname();
             } else {
-                alert("PROBABLY NOT MAGENTO WEBSITE OR NO REST API AVAILABLE.");
+                alert("NOT MAGENTO. PROBABLY PWA WEBSITE");
             }
         });
     });

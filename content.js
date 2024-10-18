@@ -102,7 +102,11 @@ chrome.runtime.onMessage.addListener(
         }
 
         if (request.message === "getPaymentMethods") {
-            injectScript(chrome.runtime.getURL('inject.js'), 'body');
+            injectScript(chrome.runtime.getURL('inject/getCheckoutPayments.js'), 'body');
+        }
+
+        if (request.message === "isHyva") {
+            injectScript(chrome.runtime.getURL('inject/isHyva.js'), 'body');
         }
     }
 );
