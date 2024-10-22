@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         var checkRestApi = async function() {
-            let url = tabConfig.url.protocol + "//" + tabConfig.domain + "/rest/default/V1/products?searchCriteria[filter_groups][filters][field]=sku&searchCriteria[filter_groups][filters][value]=adobe-test&searchCriteria[filter_groups][filters][condition_type]=like";
+            let url = tabConfig.url.protocol + "//" + tabConfig.domain + "/rest/default/V1/directory/countries";
             let response = await fetch(url);
             return response.ok;
         };
