@@ -1,22 +1,22 @@
 {
   "manifest_version": 3,
   "name": "Adobe Payment Services Helper",
-  "version": "1.0",
+  "version": "2.0",
   "description": "Detects and prints usefull information into browser console.",
   "permissions": ["activeTab","scripting","tabs","storage","debugger"],
   "action": {
-    "default_icon": {
-      "16": "icons/adobe-16.png"
-    },
+//    "default_icon": {
+//      "16": "icons/adobe-16.png"
+//    },
     "default_title": "Analyze errors",
-    "default_popup": "settings/settings.html"
+    "default_popup": "settings/index.html"
   },
   "background": {
-      "service_worker": "background.js"
+      "service_worker": "serviceWorkers/background.js"
   },
   "content_scripts": [
     {
-      "js": ["content.js"],
+      "js": ["contentScripts/content.js"],
       "matches": [
         "<all_urls>"
       ],
@@ -25,7 +25,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["inject/getCheckoutPayments.js", "inject/isHyva.js", "inject/getMixins.js"],
+      "resources": ["injectScripts/getCheckoutPayments.js", "injectScripts/isHyva.js", "injectScripts/getMixins.js"],
       "matches": ["<all_urls>"]
     }
   ]
