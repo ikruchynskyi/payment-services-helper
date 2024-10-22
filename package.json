@@ -9,7 +9,8 @@
     "webpack-dev-server": "^5.1.0"
   },
   "scripts": {
-    "start": "webpack serve --config ./webpack.config.js --mode development"
+    "start": "webpack serve --config ./webpack.config.js --mode development",
+    "build": "webpack"
   },
   "dependencies": {
     "react": "^18.3.1",
