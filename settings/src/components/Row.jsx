@@ -2,22 +2,22 @@ import React from 'react';
 const Row = (props) => {
     const handleClick = (e) => {
         e.preventDefault();
-        // Get Chrome from some context
-        var tabConfig = {};
+        const tabConfig = {};
         chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
             tabConfig.activeTab = tabs[0];
             tabConfig.activeTabUrl = tabs[0].url;
             tabConfig.url = new URL(tabs[0].url);
             tabConfig.domain = new URL(tabs[0].url).hostname;
-        });
 
-        if (method) {
-            method(tabConfig);
-        }
+            const method = props.method;
+            if (method) {
+                method(tabConfig);
+            }
+        });
     };
     return (
         <div>
-            <a href="#" id={props.id} onClick={(e) => handleClick(e)}>
+            <a href="#" id={props.id} onClick={handleClick}>
                 {props.children}
             </a>
         </div>
