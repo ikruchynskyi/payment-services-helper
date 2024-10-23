@@ -1,12 +1,7 @@
 let debuggerAttached = false;
 let networkLogs = {};
 let iframes = {};
-let globalState = {
-  webReqs: {
-    isLoading: false
-  }
-};
-chrome.storage.local.set({'globalState': globalState}, () => {});
+
 
 chrome.runtime.onMessage.addListener(function (request) {
     if (request.message === "getHar") {
