@@ -131,3 +131,28 @@ input {
 @media screen and (max-height: 450px) {
     .sidenav {padding-top: 15px;}
 }
+
+/* Keyframes for the loading animation */
+@keyframes loading {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 100% 100%;
+    }
+  }
+  
+  .loading-bar {
+    width: 100%; /* Full width, you can adjust */
+    height: 16px; /* Height of the loading bar */
+    background: repeating-linear-gradient(
+      45deg,
+      #393d3f, /* First stripe color */
+      #393d3f 10px, /* Width of first stripe */
+      #0006076e 10px, /* Second stripe color */
+      #0006076e 20px /* Width of second stripe */
+    );
+    background-size: 30px 30px; /* Control the size of the stripes */
+    animation: loading 10s linear infinite; /* 2s is the speed of the animation */
+    overflow: hidden; /* Ensures content stays within bounds */
+  }

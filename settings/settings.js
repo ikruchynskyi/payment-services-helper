@@ -120,6 +120,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     webReqs.addEventListener('click', function () {
+        webReqs.classList.toggle("loading-bar");
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             chrome.runtime.sendMessage({ message: 'getHar', tabId: tabs[0].id });
         });
