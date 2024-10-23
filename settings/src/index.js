@@ -5,4 +5,8 @@ import { StrictMode } from 'react';
 
 const container = document.getElementById('wrapper');
 const root = createRoot(container);
-root.render(<App />);
+root.render(
+<React.StrictMode>
+  <App />
+</React.StrictMode>
+  );
