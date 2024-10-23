@@ -6,7 +6,7 @@ import { StrictMode } from 'react';
 const container = document.getElementById('wrapper');
 const root = createRoot(container);
 root.render(
-<React.StrictMode>
+<StrictMode>
   <App />
-</React.StrictMode>
+</StrictMode>
   );
