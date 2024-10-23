@@ -9,7 +9,7 @@ const App = (props) => {
             <Row id="checkEnabledPaymentMethods">Locate Payment Services on Page</Row>
             <Row id="getPayPalSDK">Check Apple Pay</Row>
             <Row id="getPaymentMethods">Get Checkout Payment Methods</Row>
-            <Row id="webReqs">Analyze web requests</Row>
+            <Row id="webReqs" animate={true}>Analyze web requests</Row>
             <Row id="isFastly">Is Magento Cloud ?</Row>
             <Row id="isHyva ">Is Hyva?</Row>
             <Row id="getMixins">Checkout Mixins</Row>
