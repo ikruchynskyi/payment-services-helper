@@ -37,9 +37,6 @@ chrome.runtime.onMessage.addListener(function (request) {
             saveAndDetach(tabId);
           }
     }
-    if (request.message === 'getState') {
-      return globalState;
-    }
 });
 
 
@@ -95,7 +92,9 @@ function saveAndDetach(tabId) {
 
   chrome.windows.create({
     url: 'results.html',
-    type: 'popup'
+    type: 'popup',
+    height: 800,
+    width: 600
   });
 
   setTimeout(function() {
