@@ -6,7 +6,7 @@ const App = (props) => {
     return <div className="content">
         <Pane>
             <Row id="checkApplePay" method={checkApplePay}>Validate Apple Pay Certificate</Row>
-            <Row id="checkEnabledPaymentMethods">Locate Payment Services on Page</Row>
+            <Row id="checkEnabledPaymentMethods" method={checkEnabledPaymentMethods}>Locate Payment Services on Page</Row>
             <Row id="getPayPalSDK">Check Apple Pay</Row>
             <Row id="getPaymentMethods">Get Checkout Payment Methods</Row>
             <Row id="webReqs" animate={true}>Analyze web requests</Row>
