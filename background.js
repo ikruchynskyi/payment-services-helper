@@ -37,6 +37,12 @@ chrome.runtime.onMessage.addListener(function (request) {
             saveAndDetach(tabId);
           }
     }
+
+    if (request.message == "addToCart") {
+      setTimeout(function() {
+          chrome.tabs.sendMessage(request.tabConfig.activeTab.id, {"message": "addToCartFinal", "tabConfig": request.tabConfig});
+      }, 2000);
+    }
 });
 
 
