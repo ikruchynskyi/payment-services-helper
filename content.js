@@ -1,6 +1,8 @@
 const PROD_CLIENT_ID = "AXgJpe2oER86DpKD05zLIJa6-GgkY--5X1FK2iZG3JwlMNX6GK0JJp4jqNwUUCcjZgrOoW2zmvYklMW4";
 const SANDBOX_CLIENT_ID = "AZo2s4pxyK9ZUajGazgMrWj_eWCNcz2ARYoDrLqr9LmwVbtAyJPYnZW49I_CttP2RCcImeoGJ6C_VRrT";
 const MERCHANT_ID = "#MERCHANTID#";
+const RANDOM_PRODUCT_SEAARCH = "/rest/V1/products-render-info?searchCriteria%5BfilterGroups%5D%5B0%5D%5Bfilters%5D%5B0%5D%5Bfield%5D=type_id&searchCriteria%5BfilterGroups%5D%5B0%5D%5Bfilters%5D%5B0%5D%5Bvalue%5D=simple&searchCriteria%5BfilterGroups%5D%5B0%5D%5Bfilters%5D%5B0%5D%5BconditionType%5D=eq&searchCriteria%5BpageSize%5D=1&searchCriteria%5BcurrentPage%5D=0&storeId=0&currencyCode=*";
+
 var recentTransaction = "https://splunk.or1.adobe.net/en-US/app/search/search?q=search%20service_name%3D%22magpay-payments-events-history%22%20message.providerMerchantId%3D%22#MERCHANTID#%22%20%7C%20table%20message.timestamp%20message.mpTransactionId%20message.mpOrderId%20message.amount%20message.currency%20message.mpParentTransactionId%20messag.cardBrand%20message.cardLastDigits%20message.mpMerchantId%20message.providerMerchantId%20message.type%20message.errorResponse%20message.issue%20message.processorResponseCode&display.page.search.mode=fast&dispatch.sample_ratio=1&earliest=-1d%40d&latest=now&display.page.search.tab=statistics&display.general.type=statistics";
 var webHookList = "]https://splunk.or1.adobe.net/en-US/app/search/search?earliest=-1d%40d&latest=now&display.page.search.mode=verbose&dispatch.sample_ratio=1&display.events.type=raw&display.page.search.tab=statistics&display.general.type=statistics&q=search%20#MERCHANTID#%20Webhook%20%7C%20table%20message.timestamp%20message.message";
 var latestErrors = "https://splunk.or1.adobe.net/en-US/app/search/search?earliest=-1d%40d&latest=now&q=search%20%5Bsearch%20#MERCHANTID#%20message.mpMerchantId!%3D%22%22%20%7C%20table%20message.mpMerchantId%20%7C%20uniq%5D%20message.level!%3D%22INFO%22&display.page.search.mode=verbose&dispatch.sample_ratio=1&display.events.type=raw&display.page.search.tab=events&display.general.type=events";
@@ -8,6 +10,7 @@ var ingressRequests = "https://splunk.or1.adobe.net/en-US/app/search/search?earl
 var transactionStat = "https://splunk.or1.adobe.net/en-US/app/search/search?earliest=-1d%40d&latest=now&q=search%20#MERCHANTID#%20message.providerTransactionId!%3Dnull%20%7C%20table%20message.type%20message.amount%20%7C%20stats%20sum(message.amount)%20by%20message.type&display.page.search.mode=fast&dispatch.sample_ratio=1&display.page.search.tab=visualizations&display.general.type=visualizations&display.visualizations.charting.chart=pie";
 var debugIds = "https://splunk.or1.adobe.net/en-US/app/search/search?earliest=-1d%40d&latest=now&q=search%20%5Bsearch%20#MERCHANTID#%20message.mpMerchantId!%3D%22%22%20%7C%20rename%20message.mpMerchantId%20%20AS%20message.merchantId%20%7C%20table%20message.merchantId%20%7C%20dedup%20message.merchantId%5D%20PayPalPaymentService%20message.debugId!%3D%22%22%20%7C%20table%20message.debugId&display.page.search.mode=verbose&dispatch.sample_ratio=1&display.page.search.tab=statistics&display.general.type=statistics"
 var merchantId;
+
 
 printSDKHelperInfo = (src) => {
     let urlParams = new URL(src);
@@ -111,6 +114,25 @@ chrome.runtime.onMessage.addListener(
 
         if (request.message === "getMixins") {
             injectScript(chrome.runtime.getURL('inject/getMixins.js'), 'body');
+        }
+
+        if (request.message === "clickAddToCart") {
+            document.getElementById("product_addtocart_form").querySelectorAll("[type=submit]")[0].click();
+            window.open(window.origin + "/checkout/index","_self")
+        }
+
+        if (request.message === "fastCheckout") {
+            let newUrl = window.origin + RANDOM_PRODUCT_SEAARCH;
+            fetch(newUrl)
+                .then(response => response.text())
+                .then(data => {
+                    data = JSON.parse(data);
+                    window.location.href = window.origin + "/catalog/product/view/id/" + data["items"][0]["id"] + "/#from-helper";
+                })
+                .catch(error => {
+                    console.error('Error fetching:', error);
+                    alert("Fast checkout is not possible :(");
+                });
         }
     }
 );

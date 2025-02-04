@@ -143,3 +143,11 @@ function saveHAR(networkLogs) {
     }
   });
 }
+
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status === "complete" && tab.url.includes("catalog/product/view") && tab.url.includes("from-helper")) {
+    console.log("Product view page detected:", tab.url);
+    chrome.tabs.sendMessage(tabId, {"message": "clickAddToCart"});
+  }
+});
