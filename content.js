@@ -127,7 +127,7 @@ chrome.runtime.onMessage.addListener(
                 .then(response => response.text())
                 .then(data => {
                     data = JSON.parse(data);
-                    window.location.href = window.origin + "/catalog/product/view/id/" + data["items"][0]["id"];
+                    window.location.href = window.origin + "/catalog/product/view/id/" + data["items"][0]["id"] + "/#from-helper";
                 })
                 .catch(error => {
                     console.error('Error fetching:', error);
