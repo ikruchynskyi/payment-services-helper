@@ -127,7 +127,6 @@ chrome.runtime.onMessage.addListener(
                 .then(response => response.text())
                 .then(data => {
                     data = JSON.parse(data);
-                    // chrome.runtime.sendMessage({message: "addToCart", tabConfig: request.tabConfig});
                     window.location.href = window.origin + "/catalog/product/view/id/" + data["items"][0]["id"];
                 })
                 .catch(error => {
