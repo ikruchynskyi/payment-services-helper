@@ -132,7 +132,7 @@ chrome.runtime.onMessage.addListener(
                 })
                 .catch(error => {
                     console.error('Error fetching:', error);
-                    alert("Error fetching from " + newUrl);
+                    alert("Fast checkout is not possible :(");
                 });
         }
     }
