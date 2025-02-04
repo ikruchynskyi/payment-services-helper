@@ -37,12 +37,6 @@ chrome.runtime.onMessage.addListener(function (request) {
             saveAndDetach(tabId);
           }
     }
-
-    if (request.message == "addToCart") {
-      setTimeout(function() {
-          chrome.tabs.sendMessage(request.tabConfig.activeTab.id, {"message": "addToCartFinal", "tabConfig": request.tabConfig});
-      }, 2000);
-    }
 });
 
 
@@ -149,3 +143,11 @@ function saveHAR(networkLogs) {
     }
   });
 }
+
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status === "complete" && tab.url.includes("catalog/product/view")) {
+    console.log("Product view page detected:", tab.url);
+    chrome.tabs.sendMessage(tabId, {"message": "clickAddToCart"});
+  }
+});

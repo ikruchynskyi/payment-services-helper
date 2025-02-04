@@ -116,24 +116,24 @@ chrome.runtime.onMessage.addListener(
             injectScript(chrome.runtime.getURL('inject/getMixins.js'), 'body');
         }
 
+        if (request.message === "clickAddToCart") {
+            document.getElementById("product_addtocart_form").querySelectorAll("[type=submit]")[0].click();
+            window.open(window.origin + "/checkout/index","_self")
+        }
+
         if (request.message === "fastCheckout") {
-            let newUrl = request.tabConfig.url + RANDOM_PRODUCT_SEAARCH;
+            let newUrl = window.origin + RANDOM_PRODUCT_SEAARCH;
             fetch(newUrl)
                 .then(response => response.text())
                 .then(data => {
                     data = JSON.parse(data);
-                    chrome.runtime.sendMessage({message: "addToCart", tabConfig: request.tabConfig});
-                    window.location.href = document.baseURI + "catalog/product/view/id/" + data["items"][0]["id"];
+                    // chrome.runtime.sendMessage({message: "addToCart", tabConfig: request.tabConfig});
+                    window.location.href = window.origin + "/catalog/product/view/id/" + data["items"][0]["id"];
                 })
                 .catch(error => {
                     console.error('Error fetching:', error);
                     alert("Error fetching from " + newUrl);
                 });
-        }
-
-        if (request.message === "addToCartFinal") {
-            document.getElementById("product_addtocart_form").querySelectorAll("[type=submit]")[0].click();
-            window.open(request.tabConfig.url + "/checkout/index","_self")
         }
     }
 );
