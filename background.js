@@ -147,8 +147,17 @@ function saveHAR(networkLogs) {
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === "complete" && tab.url.includes("catalog/product/view") && tab.url.includes("from-helper")) {
-    console.log("Product view page detected:", tab.url);
     chrome.tabs.sendMessage(tabId, {"message": "clickAddToCart"});
+    setTimeout(function (){
+      chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+        if (tabs.length > 0) {
+          const currentTab = tabs[0];
+          const currentUrl = new URL(currentTab.url);
+          const newUrl = new URL('/checkout/index', currentUrl.origin);
+          chrome.tabs.update(currentTab.id, { url: newUrl.toString() });
+        }
+      });
+    }, 1000);
   }
 });
 

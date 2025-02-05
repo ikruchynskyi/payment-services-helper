@@ -118,7 +118,6 @@ chrome.runtime.onMessage.addListener(
 
         if (request.message === "clickAddToCart") {
             document.getElementById("product_addtocart_form").querySelectorAll("[type=submit]")[0].click();
-            window.open(window.origin + "/checkout/index","_self")
         }
 
         if (request.message === "fastCheckout") {
