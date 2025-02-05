@@ -12,6 +12,45 @@ var debugIds = "https://splunk.or1.adobe.net/en-US/app/search/search?earliest=-1
 var merchantId;
 
 
+window.addEventListener("DOMContentLoaded", function() {
+    injectScript(chrome.runtime.getURL('inject/errorLogger.js'), 'head');
+	var errors = [];
+	var errorsLimit = 100;
+	var tabId;
+	var timer;
+	var icon;
+	var popup;
+	var options;
+	var isIFrame = window.top != window;
+
+
+	function handleNewError(error) {
+		var lastError = errors[errors.length - 1];
+		var isSameAsLast = lastError && lastError.text == error.text && lastError.url == error.url && lastError.line == error.line && lastError.col == error.col;
+		var isWrongUrl = !error.url || error.url.indexOf('://') === -1;
+		if(!isSameAsLast && !isWrongUrl) {
+			errors.push(error);
+			if(errors.length > errorsLimit) {
+				errors.shift();
+			}
+			chrome.runtime.sendMessage({
+                "message": "ERROR_LOGGED",
+                "error": error,
+                "url": window.top.location.href
+            });
+		}
+	}
+
+	document.addEventListener('ErrorToExtension', function(e) {
+		var error = e.detail;
+        handleNewError(error);
+	});
+});
+
+
+
+
+
 printSDKHelperInfo = (src) => {
     let urlParams = new URL(src);
     let clientIdParam = urlParams.searchParams.get('client-id');

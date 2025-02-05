@@ -1,6 +1,13 @@
 let debuggerAttached = false;
 let networkLogs = {};
 let iframes = {};
+let capturedErrors = [];
+
+chrome.runtime.onMessage.addListener((request) => {
+  if (request.message === 'ERROR_LOGGED') {
+    capturedErrors.push(request.error);
+  }
+});
 
 
 chrome.runtime.onMessage.addListener(function (request) {
@@ -161,7 +168,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
 });
 
-let capturedErrors = [];
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "capture_full_page") {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -260,25 +266,25 @@ function mergeAndSaveScreenshot(screenshots) {
 }
 
 function overlayConsoleErrors(ctx, canvasWidth, canvasHeight) {
-  // Configure the text appearance
-  ctx.fillStyle = "rgba(255, 0, 0, 0.8)"; // Red color with some transparency
-  ctx.font = "16px monospace";
+  if (!capturedErrors.length) return;
+
+
+  ctx.fillStyle = "#171717";
+  let margin = 10;
+  let rectHeight = capturedErrors.length * 24 + 2 * margin; 
+
+  ctx.fillRect(0, canvasHeight - rectHeight, canvasWidth, rectHeight);
+  ctx.fillStyle = "#FFFFFF"; 
+  ctx.font = "bold 20px monospace";
   ctx.textBaseline = "top";
 
-  // Calculate where to start drawing the text (e.g., bottom of the image)
-  let margin = 10;
+  // Calculate text position
   let x = margin;
-  let y = canvasHeight - (capturedErrors.length * 20) - margin;
+  let y = canvasHeight - rectHeight + margin;
 
-  // Optionally, draw a semi-transparent background rectangle for better readability
-  const rectHeight = capturedErrors.length * 20 + 2 * margin;
-  ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // dark background
-  ctx.fillRect(0, canvasHeight - rectHeight, canvasWidth, rectHeight);
 
-  // Now draw the error messages over the rectangle
-  ctx.fillStyle = "red";
   capturedErrors.forEach((error, index) => {
-    ctx.fillText(error, x, y + index * 20);
+    ctx.fillText(JSON.stringify(error), x, y + index * 24);
   });
 }
 
