@@ -151,3 +151,145 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     chrome.tabs.sendMessage(tabId, {"message": "clickAddToCart"});
   }
 });
+
+let capturedErrors = [];
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "capture_full_page") {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs.length === 0) return;
+      let tab = tabs[0];
+
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: getFullPageHeight
+      }, (results) => {
+        if (!results || !results[0]) return;
+
+        let pageHeight = results[0].result;
+        scrollAndCapture(tab.id, pageHeight);
+      });
+    });
+  }
+});
+
+function getFullPageHeight() {
+  return document.body.scrollHeight;
+}
+
+function scrollAndCapture(tabId, totalHeight, scrollStep = 800) {
+  let scrollPos = 0;
+  let screenshots = [];
+
+  function captureNext() {
+    chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      func: (y) => window.scrollTo(0, y),
+      args: [scrollPos]
+    }, () => {
+      setTimeout(() => {
+        chrome.tabs.captureVisibleTab(null, { format: "png" }, (dataUrl) => {
+          screenshots.push(dataUrl);
+          scrollPos += scrollStep;
+
+          if (scrollPos < totalHeight) {
+            captureNext();
+          } else {
+            mergeAndSaveScreenshot(screenshots);
+          }
+        });
+      }, 500);
+    });
+  }
+
+  captureNext();
+}
+
+function mergeAndSaveScreenshot(screenshots) {
+  // First, fetch the first image to determine dimensions.
+  fetch(screenshots[0])
+      .then(response => response.blob())
+      .then(blob => createImageBitmap(blob))
+      .then(firstBitmap => {
+        const width = firstBitmap.width;
+        const height = firstBitmap.height;
+        const totalHeight = height * screenshots.length;
+
+        // Create an OffscreenCanvas with the full size.
+        const canvas = new OffscreenCanvas(width, totalHeight);
+        const ctx = canvas.getContext("2d");
+
+        // Prepare an array of promises to process each screenshot.
+        const bitmapPromises = screenshots.map((dataUrl, index) =>
+            fetch(dataUrl)
+                .then(response => response.blob())
+                .then(blob => createImageBitmap(blob))
+                .then(bitmap => {
+                  // Draw the bitmap at the appropriate vertical offset.
+                  ctx.drawImage(bitmap, 0, index * height);
+                })
+        );
+
+        // Once all images have been drawn, convert the canvas to a blob.
+        Promise.all(bitmapPromises)
+            .then(() => {
+              overlayConsoleErrors(ctx, width, totalHeight);
+              return canvas.convertToBlob({ type: "image/png" });
+            })
+            .then(blob => {
+              // Since URL.createObjectURL might not be available in service workers,
+              // convert the blob to a data URL using FileReader.
+              const reader = new FileReader();
+              reader.onloadend = function () {
+                const dataUrl = reader.result;
+                saveImage(dataUrl);
+              };
+              reader.readAsDataURL(blob);
+            })
+            .catch(error => console.error("Error during merging:", error));
+      })
+      .catch(error => console.error("Error loading first image:", error));
+}
+
+function overlayConsoleErrors(ctx, canvasWidth, canvasHeight) {
+  // Configure the text appearance
+  ctx.fillStyle = "rgba(255, 0, 0, 0.8)"; // Red color with some transparency
+  ctx.font = "16px monospace";
+  ctx.textBaseline = "top";
+
+  // Calculate where to start drawing the text (e.g., bottom of the image)
+  let margin = 10;
+  let x = margin;
+  let y = canvasHeight - (capturedErrors.length * 20) - margin;
+
+  // Optionally, draw a semi-transparent background rectangle for better readability
+  const rectHeight = capturedErrors.length * 20 + 2 * margin;
+  ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // dark background
+  ctx.fillRect(0, canvasHeight - rectHeight, canvasWidth, rectHeight);
+
+  // Now draw the error messages over the rectangle
+  ctx.fillStyle = "red";
+  capturedErrors.forEach((error, index) => {
+    ctx.fillText(error, x, y + index * 20);
+  });
+}
+
+function saveImage(blobUrl) {
+
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs.length > 0) {
+      const tabUrl = tabs[0].url;
+      try {
+        const urlObj = new URL(tabUrl);
+        const domain = urlObj.hostname;
+        chrome.downloads.download({
+          url: blobUrl,
+          filename: domain + "_screenshot.png",
+          saveAs: true
+        });
+        // Use the domain as needed...
+      } catch (error) {
+        console.error("Error parsing URL:", error);
+      }
+    }
+  });
+}

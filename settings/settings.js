@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var isHyva = document.getElementById('isHyva');
     var getMixins = document.getElementById('getMixins');
     var fastCheckout = document.getElementById('fastCheckout');
+    var screenshot = document.getElementById('screenshot');
 
     applePay.addEventListener('click', function () {
         let newUrl = tabConfig.url.protocol + "//" + tabConfig.domain + "/.well-known/apple-developer-merchantid-domain-association";
@@ -121,6 +122,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     getPaymentMethods.addEventListener('click', function () {
         chrome.tabs.sendMessage(tabConfig.activeTab.id, {"message": "getPaymentMethods"});
+    });
+
+    screenshot.addEventListener('click', function () {
+        chrome.runtime.sendMessage({ action: "capture_full_page" });
     });
 
     webReqs.addEventListener('click', function () {
