@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     isFastly.addEventListener('click', function () {
         var handleError = function (err) {
-            alert("Network error");
+            alert("Magento site, but due to Network error, can't check if Magento Cloud");
             console.warn(err);
         };
 
