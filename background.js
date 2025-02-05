@@ -164,7 +164,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
           chrome.tabs.update(currentTab.id, { url: newUrl.toString() });
         }
       });
-    }, 1000);
+    }, 3000);
   }
 });
 
