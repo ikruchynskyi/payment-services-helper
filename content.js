@@ -14,6 +14,33 @@ var merchantId;
 
 window.addEventListener("DOMContentLoaded", function() {
     injectScript(chrome.runtime.getURL('inject/errorLogger.js'), 'head');
+    
+    // Inject iframe error logger into existing iframes
+    injectScriptIntoIframes();
+    
+    // Set up a mutation observer to inject iframe error logger into new iframes
+    setupIframeObserver();
+    
+    // Listen for messages from iframes
+    window.addEventListener('message', function(event) {
+        // Check if the message is an iframe error
+        if (event.data && event.data.type === 'IFRAME_ERROR') {
+            const iframeError = event.data.error;
+            
+            // Add source information if not already present
+            if (!iframeError.iframeSrc) {
+                iframeError.iframeSrc = event.origin || 'unknown';
+            }
+            
+            // Send the iframe error to the background script
+            chrome.runtime.sendMessage({
+                "message": "IFRAME_ERROR_LOGGED",
+                "error": iframeError,
+                "url": window.location.href
+            });
+        }
+    });
+    
 	var errors = [];
 	var errorsLimit = 100;
 	var tabId;
@@ -45,11 +72,78 @@ window.addEventListener("DOMContentLoaded", function() {
 		var error = e.detail;
         handleNewError(error);
 	});
+    
+    // Listen for the AllErrorsCollected event from the errorCollector.js script
+    document.addEventListener('AllErrorsCollected', function(e) {
+        var collectedErrors = e.detail;
+        chrome.runtime.sendMessage({
+            "message": "ALL_ERRORS_COLLECTED",
+            "errors": collectedErrors,
+            "url": window.top.location.href
+        });
+    });
 });
 
+// Function to inject the iframe error logger script into all iframes
+function injectScriptIntoIframes() {
+    try {
+        const iframes = document.querySelectorAll('iframe');
+        iframes.forEach(iframe => {
+            try {
+                // Try to access the iframe content
+                if (iframe.contentDocument) {
+                    const iframeHead = iframe.contentDocument.head || iframe.contentDocument.getElementsByTagName('head')[0];
+                    if (iframeHead) {
+                        const script = document.createElement('script');
+                        script.setAttribute('type', 'text/javascript');
+                        script.setAttribute('src', chrome.runtime.getURL('inject/iframeErrorLogger.js'));
+                        iframeHead.appendChild(script);
+                    }
+                }
+            } catch (e) {
+                // Cannot access iframe due to same-origin policy
+                console.log('Cannot inject script into iframe due to same-origin policy:', iframe.src);
+            }
+        });
+    } catch (e) {
+        console.error('Error injecting scripts into iframes:', e);
+    }
+}
 
-
-
+// Set up a mutation observer to inject the iframe error logger into new iframes
+function setupIframeObserver() {
+    const iframeObserver = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+            if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach(node => {
+                    // Check if the added node is an iframe
+                    if (node.tagName && node.tagName.toLowerCase() === 'iframe') {
+                        // Wait for the iframe to load
+                        node.addEventListener('load', () => {
+                            try {
+                                if (node.contentDocument) {
+                                    const iframeHead = node.contentDocument.head || node.contentDocument.getElementsByTagName('head')[0];
+                                    if (iframeHead) {
+                                        const script = document.createElement('script');
+                                        script.setAttribute('type', 'text/javascript');
+                                        script.setAttribute('src', chrome.runtime.getURL('inject/iframeErrorLogger.js'));
+                                        iframeHead.appendChild(script);
+                                    }
+                                }
+                            } catch (e) {
+                                // Cannot access iframe due to same-origin policy
+                                console.log('Cannot inject script into iframe due to same-origin policy:', node.src);
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    });
+    
+    // Start observing the document with the configured parameters
+    iframeObserver.observe(document, { childList: true, subtree: true });
+}
 
 printSDKHelperInfo = (src) => {
     let urlParams = new URL(src);
@@ -171,6 +265,33 @@ chrome.runtime.onMessage.addListener(
                     console.error('Error fetching:', error);
                     alert("Fast checkout is not possible :(");
                 });
+        }
+        
+        if (request.message === "collectAllErrors") {
+            injectScript(chrome.runtime.getURL('inject/errorCollector.js'), 'body');
+            
+            // Also inject the error collector into accessible iframes
+            try {
+                const iframes = document.querySelectorAll('iframe');
+                iframes.forEach(iframe => {
+                    try {
+                        if (iframe.contentDocument) {
+                            const iframeBody = iframe.contentDocument.body || iframe.contentDocument.getElementsByTagName('body')[0];
+                            if (iframeBody) {
+                                const script = document.createElement('script');
+                                script.setAttribute('type', 'text/javascript');
+                                script.setAttribute('src', chrome.runtime.getURL('inject/errorCollector.js'));
+                                iframeBody.appendChild(script);
+                            }
+                        }
+                    } catch (e) {
+                        // Cannot access iframe due to same-origin policy
+                        console.log('Cannot inject error collector into iframe due to same-origin policy:', iframe.src);
+                    }
+                });
+            } catch (e) {
+                console.error('Error injecting error collector into iframes:', e);
+            }
         }
     }
 );

@@ -1,9 +1,16 @@
-function codeToInject() {
+function iframeErrorLogger() {
     // Initialize arrays to store different types of errors
     window._uncaughtExceptions = window._uncaughtExceptions || [];
     window._failedPromises = window._failedPromises || [];
-    window.console._errorHistory = window.console._errorHistory || [];
-    window.console._warningHistory = window.console._warningHistory || [];
+    
+    // Initialize console error and warning history if not already done
+    if (!window.console._errorHistory) {
+        window.console._errorHistory = [];
+    }
+    
+    if (!window.console._warningHistory) {
+        window.console._warningHistory = [];
+    }
 
     // Store original methods that we'll override
     const originalDefineCustomElement = window.customElements && window.customElements.define;
@@ -23,13 +30,9 @@ function codeToInject() {
                     timestamp: new Date().toISOString()
                 };
                 
-                // Store the error
+                // Store and send the error
                 window._uncaughtExceptions.push(errorDetails);
-                
-                // Dispatch the error to the extension
-                document.dispatchEvent(new CustomEvent('ErrorToExtension', {
-                    detail: errorDetails
-                }));
+                handleIframeError(errorDetails, 'custom-element-error');
                 
                 // Re-throw the error to maintain original behavior
                 throw error;
@@ -37,27 +40,23 @@ function codeToInject() {
         };
     }
 
-    function handleCustomError(message, stack) {
-        if(!stack) {
-            stack = (new Error()).stack.split("\n").splice(2, 4).join("\n");
+    // Function to handle errors and send them to the parent window
+    function handleIframeError(errorDetails, errorType) {
+        // Add iframe source information
+        errorDetails.iframeSource = window.location.href;
+        errorDetails.errorType = errorType;
+        errorDetails.timestamp = errorDetails.timestamp || new Date().toISOString();
+        
+        // Try to send the error to the parent window
+        try {
+            window.parent.postMessage({
+                type: 'IFRAME_ERROR',
+                error: errorDetails
+            }, '*');
+        } catch (e) {
+            console.error('Failed to send error to parent window:', e);
         }
-
-        var stackLines = stack.split("\n");
-        var callSrc = (stackLines.length > 1 && (/^.*?\((.*?):(\d+):(\d+)/.exec(stackLines[1]) || /(\w+:\/\/.*?):(\d+):(\d+)/.exec(stackLines[1]))) || [null, null, null, null];
-
-        const errorDetails = {
-            stack: stackLines.join("\n"),
-            url: callSrc[1],
-            line: callSrc[2],
-            col: callSrc[3],
-            text: message,
-            timestamp: new Date().toISOString()
-        };
-
-        document.dispatchEvent(new CustomEvent('ErrorToExtension', {
-            detail: errorDetails
-        }));
-
+        
         return errorDetails;
     }
 
@@ -68,109 +67,101 @@ function codeToInject() {
             return;
         }
         
-        // Create detailed error object
-        const errorDetails = {
-            stack: e.error ? e.error.stack : null,
-            url: e.filename,
-            line: e.lineno,
-            col: e.colno,
-            text: e.message,
-            errorName: e.error ? e.error.name : 'Unknown',
-            errorType: 'UncaughtError',
-            timestamp: new Date().toISOString()
-        };
-        
-        // Store the error
-        window._uncaughtExceptions.push(errorDetails);
-        
-        // Dispatch the error to the extension
-        document.dispatchEvent(new CustomEvent('ErrorToExtension', {
-            detail: errorDetails
-        }));
-    }, true); // Use capture phase to catch errors before they bubble up
-
-    // handle uncaught promises errors
-    window.addEventListener('unhandledrejection', function(e) {
-        if (typeof e.reason === 'undefined') {
-            e.reason = e.detail;
-        }
-        const errorDetails = handleCustomError(e.reason.message, e.reason.stack);
-        window._failedPromises.push(errorDetails);
-    });
-
-    // handle console.error()
-    var consoleErrorFunc = window.console.error;
-    window.console.error = function() {
-        var argsArray = [];
-        for(var i in arguments) { // because arguments.join() not working! oO
-            argsArray.push(arguments[i]);
-        }
-        consoleErrorFunc.apply(console, argsArray);
-
-        const errorMessage = argsArray.length == 1 && typeof argsArray[0] == 'string' ? 
-            argsArray[0] : JSON.stringify(argsArray.length == 1 ? argsArray[0] : argsArray);
-        
-        const errorDetails = handleCustomError(errorMessage);
-        window.console._errorHistory.push(errorDetails);
-    };
-
-    // handle console.warn()
-    var consoleWarnFunc = window.console.warn;
-    window.console.warn = function() {
-        var argsArray = [];
-        for(var i in arguments) {
-            argsArray.push(arguments[i]);
-        }
-        consoleWarnFunc.apply(console, argsArray);
-
-        const warningMessage = argsArray.length == 1 && typeof argsArray[0] == 'string' ? 
-            argsArray[0] : JSON.stringify(argsArray.length == 1 ? argsArray[0] : argsArray);
-        
-        window.console._warningHistory.push({
-            text: warningMessage,
-            timestamp: new Date().toISOString()
-        });
-    };
-
-    // handle uncaught errors
-    window.addEventListener('error', function(e) {
-        if(e.filename) {
+        if (e.filename) {
             const errorDetails = {
                 stack: e.error ? e.error.stack : null,
                 url: e.filename,
                 line: e.lineno,
                 col: e.colno,
                 text: e.message,
+                errorName: e.error ? e.error.name : 'Unknown',
+                errorType: 'UncaughtError',
                 timestamp: new Date().toISOString()
             };
             
-            document.dispatchEvent(new CustomEvent('ErrorToExtension', {
-                detail: errorDetails
-            }));
-            
             window._uncaughtExceptions.push(errorDetails);
+            handleIframeError(errorDetails, 'uncaught-exception');
         }
+    }, true); // Use capture phase to catch errors before they bubble up
+
+    // Handle unhandled promise rejections
+    window.addEventListener('unhandledrejection', function(e) {
+        if (typeof e.reason === 'undefined') {
+            e.reason = e.detail;
+        }
+        
+        const errorDetails = {
+            text: e.reason.message || 'Promise rejected',
+            stack: e.reason.stack,
+            errorName: e.reason.name || 'UnhandledRejection',
+            timestamp: new Date().toISOString()
+        };
+        
+        window._failedPromises.push(errorDetails);
+        handleIframeError(errorDetails, 'failed-promise');
     });
 
-    // handle 404 errors
+    // Override console.error
+    const originalConsoleError = window.console.error;
+    window.console.error = function() {
+        // Call the original console.error
+        originalConsoleError.apply(console, arguments);
+        
+        // Format the error message
+        const argsArray = Array.from(arguments);
+        const errorMessage = argsArray.length == 1 && typeof argsArray[0] == 'string' ? 
+            argsArray[0] : JSON.stringify(argsArray.length == 1 ? argsArray[0] : argsArray);
+        
+        // Create error details
+        const errorDetails = {
+            text: errorMessage,
+            timestamp: new Date().toISOString()
+        };
+        
+        // Store and send the error
+        window.console._errorHistory.push(errorDetails);
+        handleIframeError(errorDetails, 'console-error');
+    };
+
+    // Override console.warn
+    const originalConsoleWarn = window.console.warn;
+    window.console.warn = function() {
+        // Call the original console.warn
+        originalConsoleWarn.apply(console, arguments);
+        
+        // Format the warning message
+        const argsArray = Array.from(arguments);
+        const warningMessage = argsArray.length == 1 && typeof argsArray[0] == 'string' ? 
+            argsArray[0] : JSON.stringify(argsArray.length == 1 ? argsArray[0] : argsArray);
+        
+        // Create warning details
+        const warningDetails = {
+            text: warningMessage,
+            timestamp: new Date().toISOString()
+        };
+        
+        // Store and send the warning
+        window.console._warningHistory.push(warningDetails);
+        handleIframeError(warningDetails, 'console-warning');
+    };
+
+    // Handle 404 errors for resources
     window.addEventListener('error', function(e) {
         var src = e.target.src || e.target.href;
         var baseUrl = e.target.baseURI;
-        if(src && baseUrl && src != baseUrl) {
+        
+        if (src && baseUrl && src != baseUrl) {
             const errorDetails = {
                 is404: true,
                 url: src,
                 timestamp: new Date().toISOString()
             };
             
-            document.dispatchEvent(new CustomEvent('ErrorToExtension', {
-                detail: errorDetails
-            }));
-            
             window._uncaughtExceptions.push(errorDetails);
+            handleIframeError(errorDetails, '404-error');
         }
     }, true);
-    
+
     // Add a global error handler to catch errors that might be missed by other handlers
     window.onerror = function(message, source, lineno, colno, error) {
         const errorDetails = {
@@ -193,15 +184,16 @@ function codeToInject() {
         
         if (!isDuplicate) {
             window._uncaughtExceptions.push(errorDetails);
-            
-            document.dispatchEvent(new CustomEvent('ErrorToExtension', {
-                detail: errorDetails
-            }));
+            handleIframeError(errorDetails, 'global-error');
         }
         
         // Return false to allow the error to propagate to the browser's console
         return false;
     };
+
+    // Log that the iframe error logger has been initialized
+    console.log('Iframe error logger initialized in:', window.location.href);
 }
 
-codeToInject();
+// Execute the function
+iframeErrorLogger(); 

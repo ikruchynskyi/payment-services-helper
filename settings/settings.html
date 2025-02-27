@@ -5,6 +5,59 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link rel="stylesheet" href="settings.css">
     <title>Payment Services Helper Settings</title>
+    <style>
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+            margin-right: 10px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .toggle-slider {
+            background-color: #6F4BD8;
+        }
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        .toggle-label {
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
 <div id="wrapper">
@@ -19,7 +72,9 @@
         <a href="#" id="getMixins">Checkout Mixins</a>
         <a href="#" id="fastCheckout">Fast checkout</a>
         <a href="#" id="screenshot">Make a screenshot</a>
+        <a href="#" id="collectErrors">Collect All Errors</a>
         <a href="#" id="openDocs">Documentations</a>
+        <!-- <a href="#" id="analyzeWithPerplexity">Analyze Errors with Perplexity AI</a> -->
     </div>
     <div id="mySidenav" class="sidenav">
         <span href="javascript:void(0)" class="closebtn" id="closebtn">&times;</span>

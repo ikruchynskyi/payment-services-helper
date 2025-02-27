@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Analysis Results</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f7;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background-color: #0071e3;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 20px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .summary-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .error-section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .error-section h2 {
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 15px 20px;
+            font-size: 18px;
+            border-bottom: 1px solid #e1e1e1;
+        }
+        .error-content {
+            padding: 20px;
+        }
+        .error-item {
+            border-left: 4px solid #0071e3;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+        }
+        .error-message {
+            font-weight: bold;
+            color: #d32f2f;
+            margin-bottom: 5px;
+        }
+        .error-location {
+            font-family: monospace;
+            background-color: #f2f2f2;
+            padding: 5px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+        .error-stack {
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            background-color: #f2f2f2;
+            padding: 10px;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .solutions {
+            background-color: #e8f5e9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .solutions h3 {
+            margin-top: 0;
+            color: #2e7d32;
+        }
+        .perplexity-link {
+            display: block;
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #0071e3;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .perplexity-link:hover {
+            background-color: #005bb5;
+        }
+        .perplexity-link.disabled {
+            background-color: #999;
+            cursor: not-allowed;
+        }
+        .perplexity-link.disabled:hover {
+            background-color: #999;
+        }
+        .timestamp {
+            text-align: right;
+            font-size: 12px;
+            color: #666;
+            margin-top: 20px;
+        }
+        .no-errors {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .copy-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 10px 0;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .copy-button:hover {
+            background-color: #45a049;
+        }
+        .copy-button:active {
+            background-color: #3e8e41;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>JavaScript Error Analysis</h1>
+        </header>
+        
+        <div class="summary-card">
+            <h2>Analysis Summary</h2>
+            <div id="summary-content">
+                <p>Loading analysis results...</p>
+            </div>
+        </div>
+        
+        <!-- <div class="error-section">
+            <h2>Error Details</h2>
+            <div class="error-content" id="error-details">
+                <p>Loading error details...</p>
+            </div>
+        </div> -->
+        
+        <div class="error-section">
+            <h2>Raw Data Sent to Perplexity</h2>
+            <div class="error-content" id="raw-perplexity-data">
+                <p>Loading raw data...</p>
+                <button id="copy-button" class="copy-button">Copy to Clipboard</button>
+                <div class="error-stack" id="perplexity-raw-text" style="max-height: 300px;"></div>
+            </div>
+        </div>
+        
+        <!-- <div class="error-section">
+            <h2>Potential Solutions</h2>
+            <div class="error-content" id="solutions">
+                <p>Analyzing possible solutions...</p>
+            </div>
+        </div> -->
+        
+        <a href="#" id="perplexity-link" class="perplexity-link" target="_blank">
+            View Full Analysis in Perplexity
+        </a>
+        
+        <div class="timestamp" id="timestamp">
+            Analysis performed on: <span id="analysis-time"></span>
+        </div>
+    </div>
+
+    <script src="analysis-results.js"></script>
+</body>
+</html> 
