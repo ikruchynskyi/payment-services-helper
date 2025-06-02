@@ -41,26 +41,49 @@ document.addEventListener('DOMContentLoaded', function () {
     var getMixins = document.getElementById('getMixins');
     var fastCheckout = document.getElementById('fastCheckout');
     var screenshot = document.getElementById('screenshot');
+    var snippets = document.getElementById('snippets');
+    var apsConfig = document.getElementsByClassName('aps-config')
+
+    Array.from(apsConfig).forEach(function(element) {
+        element.addEventListener('click', function() {
+            var url = tabConfig.url.protocol + "//" + tabConfig.domain +'/rest/V1/payments-config/' + element.id.toUpperCase();
+            window.open(url, '_blank');
+        });
+    });
 
     applePay.addEventListener('click', function () {
+        async function getMostRecentAppleCert() {
+            const response = await fetch("https://paypalobjects.com/devdoc/apple-pay/well-known/apple-developer-merchantid-domain-association");
+            if (!response.ok) {
+                console.error("Failed to fetch certificate:", response.status);
+                return;
+            }
+            const AppleCert = await response.text();
+            return AppleCert.trim()
+        }
         let newUrl = tabConfig.url.protocol + "//" + tabConfig.domain + "/.well-known/apple-developer-merchantid-domain-association";
-        fetch(newUrl)
-            .then(response => response.text())
-            .then(data => {
-                if (data === APPLE_CERT) {
-                    alert("Apple Certificate is VALID");
-                } else if (APPLE_CERT_OLD.includes(data)) {
-                    alert("Old payment services certificate detected! Please update Payment Services module");
-                }
-                else {
-                    alert("Apple Certificate is NOT VALID:\n Console command to share with client copied to the clipboard\n" + data);
-                    navigator.clipboard.writeText("Please analyse if Apple Pay Domain Verification certificate is accessible. Next CLI command can help with investigation: \ncurl -IL " + tabConfig.url.protocol + "//" + tabConfig.domain + "/.well-known/apple-developer-merchantid-domain-association");
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching:', error);
-                alert("Error fetching from " + newUrl);
-            });
+        async function main() {
+            const cert = await getMostRecentAppleCert();
+            fetch(newUrl)
+                .then(response => response.text())
+                .then(data => {
+                    if (data == cert) {
+                        alert("Apple Certificate is VALID");
+                    } else if (APPLE_CERT_OLD.includes(data)) {
+                        alert("Old payment services certificate detected! Please update Payment Services module");
+                    }
+                    else {
+                        alert("Apple Certificate is NOT VALID:\n Console command to share with client copied to the clipboard\n" + data);
+                        navigator.clipboard.writeText("Please analyse if Apple Pay Domain Verification certificate is accessible. Next CLI command can help with investigation: \ncurl -IL " + tabConfig.url.protocol + "//" + tabConfig.domain + "/.well-known/apple-developer-merchantid-domain-association");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching:', error);
+                    alert("Error fetching from " + newUrl);
+                });
+        }
+
+        main();
     });
 
     checkEnabledPaymentMethods.addEventListener('click', function () {
@@ -122,6 +145,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     getPaymentMethods.addEventListener('click', function () {
         chrome.tabs.sendMessage(tabConfig.activeTab.id, {"message": "getPaymentMethods"});
+    });
+
+    snippets.addEventListener('click', function () {
+        chrome.windows.create({
+            url: 'snippets.html',
+            type: 'popup',
+            height: 800,
+            width: 600
+        });
     });
 
     screenshot.addEventListener('click', function () {
