@@ -15,16 +15,6 @@ To load an unpacked extension in developer mode:
 ![Example](https://developer.chrome.com/static/docs/extensions/get-started/tutorial/hello-world/image/extensions-page-e0d64d89a6acf.png)
 Ta-da! The extension has been successfully installed. If no extension icons were included in the manifest, a generic icon will be created for the extension.
 
-## CLI installation
-
-```bash
-curl -Ls -O https://github.com/ikruchynskyi/payment-services-helper/archive/main.zip \
-&& unzip main.zip && cd payment-services-helper-main \
-&& echo "Extensaion downloaded and unarchived. Path:" \
-&& pwd
-```
-Then load unpacked folder as described in previous step.
-
 ## Pin extension to the toolbar:
 ![pin_extension](https://raw.githubusercontent.com/ikruchynskyi/payment-services-helper/main/misc/pin.png)
 
