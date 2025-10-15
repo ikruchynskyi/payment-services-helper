@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
             fetch(newUrl)
                 .then(response => response.text())
                 .then(data => {
-                    if (data == cert) {
+                    if (data.trim() == cert) {
                         alert("Apple Certificate is VALID");
                     } else if (APPLE_CERT_OLD.includes(data)) {
                         alert("Old payment services certificate detected! Please update Payment Services module");
