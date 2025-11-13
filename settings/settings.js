@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var webReqs = document.getElementById('webReqs');
     var isFastly = document.getElementById('isFastly');
     var isHyva = document.getElementById('isHyva');
+    var isAEM = document.getElementById('isAEM');
     var getMixins = document.getElementById('getMixins');
     var fastCheckout = document.getElementById('fastCheckout');
     var screenshot = document.getElementById('screenshot');
@@ -96,6 +97,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     isHyva.addEventListener('click', function () {
         chrome.tabs.sendMessage(tabConfig.activeTab.id, {"message": "isHyva"});
+    });
+
+    isAEM.addEventListener('click', function () {
+        chrome.tabs.sendMessage(tabConfig.activeTab.id, {"message": "isAEM"});
     });
 
     getMixins.addEventListener('click', function () {
@@ -193,13 +198,20 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
-// Settings navigation
+const sideBarElements = document.querySelectorAll('.openSidebar');
+sideBarElements.forEach(element => {
+    element.addEventListener('click', (event) => {
+        const targetValue = event.target.getAttribute('data-target');
+        document.getElementById(targetValue).style.width = "250px";
+    });
+});
 
-let openSidePanel = document.getElementById('openDocs');
-let closeSidePanel = document.getElementById('closebtn');
-openSidePanel.addEventListener('click', function () {
-    document.getElementById("mySidenav").style.width = "250px";
+
+const closeSidebarElements = document.querySelectorAll('.closebtn');
+closeSidebarElements.forEach(element => {
+    element.addEventListener('click', (event) => {
+        const targetValue = event.target.getAttribute('data-target');
+        document.getElementById(targetValue).style.width = "0";
+    });
 });
-closeSidePanel.addEventListener('click', function () {
-    document.getElementById("mySidenav").style.width = "0";
-});
+

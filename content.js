@@ -151,6 +151,10 @@ chrome.runtime.onMessage.addListener(
             injectScript(chrome.runtime.getURL('inject/isHyva.js'), 'body');
         }
 
+        if (request.message === "isAEM") {
+            injectScript(chrome.runtime.getURL('inject/isAEM.js'), 'body');
+        }
+
         if (request.message === "getMixins") {
             injectScript(chrome.runtime.getURL('inject/getMixins.js'), 'body');
         }
