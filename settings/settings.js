@@ -166,9 +166,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    screenshot.addEventListener('click', function () {
-        chrome.runtime.sendMessage({ action: "capture_full_page" });
-    });
+    // screenshot.addEventListener('click', function () {
+    //     chrome.runtime.sendMessage({ action: "capture_full_page" });
+    // });
 
     webReqs.addEventListener('click', function () {
         webReqs.classList.toggle("loading-bar");
