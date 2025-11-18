@@ -43,13 +43,18 @@ document.addEventListener('DOMContentLoaded', function () {
     var fastCheckout = document.getElementById('fastCheckout');
     var screenshot = document.getElementById('screenshot');
     var snippets = document.getElementById('snippets');
-    var apsConfig = document.getElementsByClassName('aps-config')
+    var apsConfig = document.getElementsByClassName('aps-config');
+    var magereport = document.getElementById('magereport');
 
     Array.from(apsConfig).forEach(function(element) {
         element.addEventListener('click', function() {
             var url = tabConfig.url.protocol + "//" + tabConfig.domain +'/rest/V1/payments-config/' + element.id.toUpperCase();
             window.open(url, '_blank');
         });
+    });
+
+    magereport.addEventListener('click', function() {
+        window.open("https://www.magereport.com/scan/?s=" + tabConfig.domain, '_blank');
     });
 
     applePay.addEventListener('click', function () {
