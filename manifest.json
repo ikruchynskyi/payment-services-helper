@@ -30,7 +30,8 @@
         "inject/isHyva.js",
         "inject/getMixins.js",
         "inject/errorLogger.js",
-        "inject/isAEM.js"
+        "inject/isAEM.js",
+        "inject/paypalSDKHelper.js"
       ],
       "matches": ["<all_urls>"]
     }

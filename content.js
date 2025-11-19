@@ -48,9 +48,6 @@ window.addEventListener("DOMContentLoaded", function() {
 });
 
 
-
-
-
 printSDKHelperInfo = (src) => {
     let urlParams = new URL(src);
     let clientIdParam = urlParams.searchParams.get('client-id');
@@ -140,6 +137,7 @@ chrome.runtime.onMessage.addListener(
                 }
                 printSDKHelperInfo(src);
             }
+            injectScript(chrome.runtime.getURL('inject/paypalSDKHelper.js'), 'body');
             printSplunkLinks();
         }
 
