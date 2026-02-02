@@ -5,10 +5,8 @@ Extension loads useful information associated with Payment Services into the bro
 ![browser console](https://raw.githubusercontent.com/ikruchynskyi/payment-services-helper/main/misc/console_example_1.png)
 
 ## For users (no build required)
-Download the latest `dist.zip` from `https://github.com/ikruchynskyi/payment-services-helper/releases/latest/download/dist.zip`, unzip it, and load the `dist/` folder as an unpacked extension.
-
 Steps:
-1. Download `dist.zip` from `https://github.com/ikruchynskyi/payment-services-helper/releases/latest/download/dist.zip`.
+1. Download [dist.zip](https://github.com/ikruchynskyi/payment-services-helper/releases/latest/download/dist.zip).
 2. Unzip it.
 3. Open Chrome → `chrome://extensions`.
 4. Enable **Developer mode**.
