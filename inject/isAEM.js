@@ -1,1 +1,0 @@
-alert(window.DROPINS != undefined ? "Yes! This is AEM storefront!": "No, this is not an AEM Storefront");
