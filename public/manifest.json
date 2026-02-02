@@ -1,15 +1,15 @@
 {
   "manifest_version": 3,
   "name": "Adobe Payment Services Helper",
-  "version": "1.0",
-  "description": "Detects and prints usefull information into browser console.",
+  "version": "2.0.0",
+  "description": "Detects and prints useful information into browser console.",
   "permissions": ["activeTab","scripting","tabs","storage","debugger", "unlimitedStorage", "browsingData", "notifications", "downloads"],
   "action": {
     "default_icon": {
       "16": "icons/adobe-16.png"
     },
     "default_title": "Analyze errors",
-    "default_popup": "settings/settings.html"
+    "default_popup": "popup/index.html"
   },
   "background": {
       "service_worker": "background.js"
@@ -37,4 +37,3 @@
     }
   ]
 }
-

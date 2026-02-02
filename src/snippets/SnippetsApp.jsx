@@ -1,25 +1,9 @@
-<!DOCTYPE html>
-<head>
-    <title>Payment Service Requests analyzer</title>
-    <style>
-        #results div {
-            border: 1px solid #252323;
-            cursor: pointer;
-            padding: 10px 5px;
-        }
-        #results div:hover {
-            background: rgba(16, 15, 15, 0.1);
-        }
+import React from 'react';
 
-    </style>
-</head>
-<body>
-<div id="heading"></div>
-<div id="results">
-    <h2>Get quote object on checkout/cart pages</h2>
-    <div>
-        <pre>
-quote = requirejs("Magento_Checkout/js/model/quote")
+const SNIPPETS = [
+  {
+    title: 'Get quote object on checkout/cart pages',
+    body: `quote = requirejs("Magento_Checkout/js/model/quote")
 url = BASE_URL + "rest/default/V1/guest-carts/" + quote.getQuoteId() + "/totals"
 res = await fetch(url, {
   "headers": {
@@ -32,15 +16,13 @@ res = await fetch(url, {
     "sec-fetch-site": "same-origin",
     "x-requested-with": "XMLHttpRequest"
   },
-  "method": "GET",
+  "method": "GET"
 });
-body = await res.json()
-</pre>
-    </div>
-    <h2>Check merchant is eligible for GooglePay/ ApplePay</h2>
-    <div>
-        <pre>
-if (typeof paypal === 'function' && paypal.Googlepay) {
+body = await res.json()`
+  },
+  {
+    title: 'Check merchant is eligible for GooglePay/ ApplePay',
+    body: `if (typeof paypal === 'function' && paypal.Googlepay) {
   console.log('Google Pay');
   paypal.Googlepay().config().then(config => console.log(config));
 }
@@ -51,10 +33,27 @@ if (typeof paypal === 'function' && paypal.ApplePay) {
 if (typeof PaymentServicesSDK === 'function') {
   var apssdk = new PaymentServicesSDK({"apiUrl":BASE_URL + "/graphql"});
   apssdk.Payment.init({"location":"CHECKOUT"}).then(() => console.log("Hosted Fields eligible: " + apssdk.Payment.creditCard.creditCard().component.isEligible()));
-}
-</pre>
+}`
+  }
+];
+
+function SnippetsApp() {
+  return (
+    <div className="snippets-wrapper">
+      {SNIPPETS.map((snippet) => (
+        <div key={snippet.title} className="snippet-section">
+          <h2>{snippet.title}</h2>
+          <button
+            className="snippet-card"
+            onClick={() => navigator.clipboard.writeText(snippet.body)}
+            title="Copy snippet"
+          >
+            <pre>{snippet.body}</pre>
+          </button>
+        </div>
+      ))}
     </div>
-</div>
-</body>
-<script src="snippets.js"></script>
-</html>
+  );
+}
+
+export default SnippetsApp;
