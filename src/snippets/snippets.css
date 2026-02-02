@@ -1,0 +1,38 @@
+body {
+  margin: 0;
+  padding: 16px;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  color: #111;
+  background: #fff;
+}
+
+.snippets-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.snippet-section h2 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+}
+
+.snippet-card {
+  border: 1px solid #252323;
+  cursor: pointer;
+  padding: 10px;
+  background: #fff;
+  text-align: left;
+  width: 100%;
+}
+
+.snippet-card:hover {
+  background: rgba(16, 15, 15, 0.06);
+}
+
+pre {
+  margin: 0;
+  background: #f7f7f7;
+  padding: 8px;
+  overflow-x: auto;
+}

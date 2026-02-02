@@ -1,0 +1,136 @@
+:root {
+  color-scheme: light dark;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  color: #fff;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+#root {
+  height: 100%;
+}
+
+.app {
+  position: relative;
+  width: 250px;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.action-link {
+  padding: 8px 6px;
+  text-align: left;
+  font-size: 13px;
+  color: #c6c6c6;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.action-link:hover {
+  color: #fff;
+  border: 1px ridge #818181;
+}
+
+.action-link:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.aps-config-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.aps-title {
+  width: 100%;
+  font-size: 12px;
+  color: #c6c6c6;
+}
+
+.aps-config {
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+input {
+  margin-top: 8px;
+  width: 100%;
+  line-height: 28px;
+  border: 1px solid #333;
+  background: #0f0f0f;
+  color: #fff;
+  padding: 0 6px;
+  box-sizing: border-box;
+}
+
+.sidenav {
+  height: 100%;
+  width: 0;
+  position: fixed;
+  z-index: 10;
+  top: 0;
+  left: 0;
+  background-color: #111;
+  overflow-x: hidden;
+  transition: 0.3s ease;
+  padding-top: 60px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidenav.open {
+  width: 250px;
+  padding-left: 8px;
+  padding-right: 8px;
+  box-sizing: border-box;
+}
+
+.closebtn {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+  font-size: 24px;
+  background: transparent;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 100% 100%;
+  }
+}
+
+.loading-bar {
+  background: repeating-linear-gradient(
+    45deg,
+    #393d3f,
+    #393d3f 10px,
+    #0006076e 10px,
+    #0006076e 20px
+  );
+  background-size: 30px 30px;
+  animation: loading 10s linear infinite;
+}
