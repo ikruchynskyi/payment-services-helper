@@ -790,7 +790,7 @@ if (isset($_GET['api'])) {
                 <tbody id="reportBody"></tbody>
             </table>
         </div>
-        <div class="footer-note" id="footerNote">Data updates in real time. Dates follow server timezone.</div>
+        <div class="footer-note" id="footerNote">Data refreshes when you apply filters or reload. Dates follow server timezone.</div>
     </section>
 </div>
 
@@ -828,6 +828,34 @@ if (isset($_GET['api'])) {
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
+    }
+
+    function syncUrl() {
+        const url = new URL(window.location.href);
+        if (state.start) {
+            url.searchParams.set('start', state.start);
+        } else {
+            url.searchParams.delete('start');
+        }
+        if (state.end) {
+            url.searchParams.set('end', state.end);
+        } else {
+            url.searchParams.delete('end');
+        }
+        if (state.event && state.event !== 'all') {
+            url.searchParams.set('event', state.event);
+        } else {
+            url.searchParams.delete('event');
+        }
+        if (state.group) {
+            url.searchParams.set('group', state.group);
+        } else {
+            url.searchParams.delete('group');
+        }
+        url.searchParams.delete('api');
+        url.searchParams.delete('stats');
+        url.searchParams.delete('format');
+        history.replaceState({}, '', url.toString());
     }
 
     function formatNumber(value) {
@@ -870,6 +898,7 @@ if (isset($_GET['api'])) {
         url.searchParams.set('group', state.group);
         url.searchParams.set('limit', state.limit);
         url.searchParams.delete('stats');
+        url.searchParams.delete('format');
         return url.toString();
     }
 
@@ -1027,8 +1056,38 @@ if (isset($_GET['api'])) {
         state.group = elements.groupSelect.value || 'month';
     }
 
+    function loadStateFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const start = params.get('start');
+        const end = params.get('end');
+        const event = params.get('event');
+        const group = params.get('group');
+
+        if (start) {
+            elements.startDate.value = start;
+        }
+        if (end) {
+            elements.endDate.value = end;
+        }
+        if (group) {
+            elements.groupSelect.value = group;
+        }
+
+        state.start = start || null;
+        state.end = end || null;
+        state.event = event || 'all';
+        state.group = group || elements.groupSelect.value || 'month';
+
+        if (!start && !end) {
+            setRange(30);
+            state.start = elements.startDate.value || null;
+            state.end = elements.endDate.value || null;
+        }
+    }
+
     async function loadDashboard() {
         updateFiltersFromUI();
+        syncUrl();
         const response = await fetch(buildApiUrl('dashboard'));
         const payload = await response.json();
         if (payload.events) {
@@ -1046,7 +1105,7 @@ if (isset($_GET['api'])) {
             events = [];
         }
 
-        const current = elements.eventSelect.value || 'all';
+        const current = state.event || elements.eventSelect.value || 'all';
         elements.eventSelect.innerHTML = '';
         const allOption = document.createElement('option');
         allOption.value = 'all';
@@ -1076,7 +1135,7 @@ if (isset($_GET['api'])) {
     });
 
     function init() {
-        setRange(30);
+        loadStateFromUrl();
         loadDashboard();
     }
 
