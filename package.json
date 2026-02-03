@@ -1,7 +1,7 @@
 {
   "name": "payment-services-helper",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Chrome extension helpers for Adobe Payment Services",
   "scripts": {
     "dev": "vite build --watch --mode development",

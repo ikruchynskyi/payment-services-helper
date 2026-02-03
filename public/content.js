@@ -187,10 +187,48 @@
       });
   }
 
+  function waitForAddToCart({ clearHash = false } = {}) {
+    const maxAttempts = 40;
+    let attempts = 0;
+
+    const timer = setInterval(() => {
+      const form = document.getElementById('product_addtocart_form');
+      const submitButton =
+        form?.querySelector('[type=submit]') ||
+        document.querySelector('#product-addtocart-button');
+      const ready = submitButton && !submitButton.disabled && submitButton.offsetParent !== null;
+
+      if (ready) {
+        clearInterval(timer);
+        if (form?.requestSubmit) {
+          form.requestSubmit(submitButton);
+        } else {
+          submitButton.click();
+        }
+
+        if (clearHash) {
+          const cleanedUrl = window.location.href.replace('#from-helper', '');
+          history.replaceState({}, '', cleanedUrl);
+        }
+        return;
+      }
+
+      attempts += 1;
+      if (attempts >= maxAttempts) {
+        clearInterval(timer);
+        console.warn('Add to cart button not found or not ready.');
+      }
+    }, 300);
+  }
+
   function handleClickAddToCart() {
-    const form = document.getElementById('product_addtocart_form');
-    const submitButton = form?.querySelector('[type=submit]');
-    submitButton?.click();
+    waitForAddToCart();
+  }
+
+  function maybeAutoAddToCart() {
+    if (window.location.hash.includes('from-helper')) {
+      waitForAddToCart({ clearHash: true });
+    }
   }
 
   function handleMessage(request) {
@@ -241,5 +279,6 @@
 
   window.addEventListener('DOMContentLoaded', setupErrorLogging);
   window.addEventListener('load', observePaypalScripts);
+  window.addEventListener('load', maybeAutoAddToCart);
   chrome.runtime.onMessage.addListener(handleMessage);
 })();
