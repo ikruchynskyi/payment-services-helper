@@ -35,7 +35,7 @@ const DocsLinks = [
   {
     id: 'fluffyJaws',
     label: 'AI Chat Bot',
-    url: 'https://aemcs-workspace.adobe.com/bot/chat/'
+    url: 'https://fluffyjaws.adobe.com/'
   }
 ];
 
