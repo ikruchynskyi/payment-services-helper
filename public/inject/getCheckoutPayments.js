@@ -14,8 +14,13 @@
       }
     `;
 
-    fetch('/config.json')
-      .then((r) => r.json())
+    const getConfig = () => {
+      const cached = sessionStorage.getItem('config');
+      if (cached) return Promise.resolve(JSON.parse(cached));
+      return fetch('/config.json').then((r) => r.json());
+    };
+
+    getConfig()
       .then((config) => {
         const endpoint = config?.public?.default?.['commerce-core-endpoint'];
         if (!endpoint) throw new Error('commerce-core-endpoint not found in /config.json');

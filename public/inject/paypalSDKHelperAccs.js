@@ -34,8 +34,14 @@
 
   let merchantId;
 
+  async function getConfig() {
+    const cached = sessionStorage.getItem('config');
+    if (cached) return JSON.parse(cached);
+    return fetch('/config.json').then((r) => r.json());
+  }
+
   async function getCommerceEndpoint() {
-    const config = await fetch('/config.json').then((r) => r.json());
+    const config = await getConfig();
     return config?.public?.default?.['commerce-core-endpoint'];
   }
 

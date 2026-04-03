@@ -177,7 +177,8 @@
       }
     `;
     try {
-      const config = await fetch('/config.json').then((r) => r.json());
+      const cached = sessionStorage.getItem('config');
+      const config = cached ? JSON.parse(cached) : await fetch('/config.json').then((r) => r.json());
       const endpoint = config?.public?.default?.['commerce-core-endpoint'];
       if (!endpoint) {
         console.error('[APS Helper] commerce-core-endpoint not found in /config.json');
