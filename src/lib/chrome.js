@@ -1,12 +1,3 @@
-function sendToActiveTabAsync(tabId, message) {
-  return new Promise((resolve) => {
-    chrome.tabs.sendMessage(tabId, message, (response) => {
-      if (chrome.runtime.lastError) resolve(null);
-      else resolve(response);
-    });
-  });
-}
-
 export async function getActiveTabConfig() {
   const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
   const tab = tabs?.[0];
@@ -14,9 +5,13 @@ export async function getActiveTabConfig() {
   const url = new URL(tab.url);
 
   let isAccs = false;
-  if (tab.id) {
-    const response = await sendToActiveTabAsync(tab.id, { message: 'isAccsStorefront' }).catch(() => null);
-    isAccs = response?.isAccs ?? false;
+  try {
+    const config = await fetch(`${url.protocol}//${url.hostname}/config.json`)
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null);
+    isAccs = Boolean(config?.public?.default?.['commerce-core-endpoint']);
+  } catch {
+    isAccs = false;
   }
 
   return {

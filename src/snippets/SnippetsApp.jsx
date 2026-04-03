@@ -23,7 +23,7 @@ console.log(JSON.stringify(data.data.getPaymentConfig, null, 2))`
   {
     title: '[ACCS] Check PaymentServicesSDK eligibility',
     body: `config = await fetch('/config.json').then(r => r.json())
-apiUrl = config.public.default['commerce-core-endpoint'].replace('/graphql', '')
+apiUrl = config.public.default['commerce-core-endpoint']
 sdk = new PaymentServicesSDK({ apiUrl })
 await sdk.Payment.init({ location: 'CHECKOUT' })
 console.log('Hosted Fields eligible:', sdk.Payment.creditCard.creditCard().component.isEligible())`

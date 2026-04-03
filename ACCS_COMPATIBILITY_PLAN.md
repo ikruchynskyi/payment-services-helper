@@ -8,7 +8,7 @@ Adobe Commerce Cloud Service (ACCS) introduces a new storefront architecture:
 - **Frontend:** [Adobe Commerce Storefront](https://experienceleague.adobe.com/developer/commerce/storefront/get-started/architecture/) — built on Edge Delivery Services (EDS). No RequireJS, no `window.checkoutConfig`, no Magento session endpoints.
 - **Boilerplate:** https://github.com/hlxsites/aem-boilerplate-commerce
 - **Payment Services:** Integrated as a [drop-in component](https://experienceleague.adobe.com/developer/commerce/storefront/dropins/payment-services/) (`@dropins/payment-services`). Registered on `window.DROPINS`. Uses **GraphQL** for all payment data — `/customer/section/load` does not exist.
-- **Detection signal (already in use):** `typeof window.DROPINS !== 'undefined'` → `inject/isAEM.js`
+- **Detection signal:** Every ACCS/AEM storefront exposes `/config.json` at the site root containing `public.default.commerce-core-endpoint`. Presence of this key reliably identifies ACCS. Used consistently across all features — popup (`getActiveTabConfig`), content script (`togglePaymentBorders`), and inject scripts (`isAEM.js`, `getCheckoutPayments.js`). `window.DROPINS` is NOT used for detection because content scripts run in an isolated JS world and cannot read page-level globals.
 
 ---
 
@@ -139,6 +139,7 @@ On ACCS, `window.DROPINS` is present on all pages including the homepage. The cu
 **Checkout-page globals:**
 - `window.PaymentServicesSDK` — constructor function (1 arg). The existing snippet `new PaymentServicesSDK({"apiUrl": ...})` works but must use `commerce-core-endpoint` as `apiUrl`, not `window.location.origin + "/graphql"`.
 - `window.paypalCreditCardCheckout` — has `FUNDING`, `getCorrelationID`, `HostedFields` — confirming PayPal SDK is loaded and functional.
+- If `window.PaymentServicesSDK` is not present on the page, it can be loaded from the public CDN bundle: `https://commerce-payments-sdk.adobe.io/v0/4/PaymentSDK.js?ext=2.14.0`
 
 **sessionStorage on ACCS:**
 - `config` — cached contents of `/config.json`; includes `commerce-core-endpoint`, `commerce-endpoint`, and store headers
@@ -157,146 +158,114 @@ These selectors are useful for quick ACCS page-type detection even before the pa
 
 ---
 
-## Phase 2 — Implementation
+## Phase 2 — Implementation (completed 2026-04-03)
 
-Order: highest-value / most-requested first.
+### Feature status matrix
 
-### 2.1 "Check PayPal SDK" — ACCS GraphQL path
-
-**Current code:** `paypalSDKHelper.js` fetches `/customer/section/load?sections=payments`. The "Storefront Utils → Check PayPal SDK" button (`accs-getPayPalSDK`) currently reuses the same handler — wrong.
-
-**New behavior (when on ACCS):**
-1. Detect ACCS: `typeof window.DROPINS !== 'undefined'`
-2. Fetch `/config.json` to get `commerce-core-endpoint`
-3. POST `GetPaymentConfig` with `location: "CHECKOUT"` to that endpoint
-4. Extract SDK URL: `hosted_fields.sdk_params.find(p => p.name === 'src').value`
-5. Pass through existing `cleanSdkUrl()` + `injectPaypal()` logic unchanged
-
-**Implementation approach:** Add an ACCS branch to `paypalSDKHelper.js` (keep the M2 path unchanged). Wire the `accs-getPayPalSDK` popup button to inject this ACCS-aware script instead of calling `buildPayPalSdkCheckUrl()`.
-
-**Files to change:**
-- `public/inject/paypalSDKHelper.js` — add ACCS detection branch at the top of `run()`
-- `src/popup/PopupApp.jsx` — wire `handleAccsGetPayPalSdk` to inject the script into the active tab (same as `handleGetPayPalSdk` but via content script injection, not a direct fetch)
-
----
-
-### 2.2 "Get APS Configuration" — GraphQL replacement for ACCS
-
-**Current code:** Opens `/rest/V1/payments-config/{LOCATION}` in a new tab. Won't work on ACCS frontend domain.
-
-**New behavior (ACCS):** Call `GetPaymentConfig($location)` via inject and display result in console / alert (same UX as the "Check PayPal SDK" output).
-
-**Location mapping:**
-- PDP button → `PRODUCT_DETAIL`
-- Checkout button → `CHECKOUT`
-- Cart button → `CART`
-- Minicart button → `MINICART`
-
-**Files to change:**
-- `public/inject/` — new `getPaymentConfigAccs.js` that accepts a location, fetches `/config.json`, calls GraphQL, logs result
-- `public/content.js` — handle new message `getPaymentConfigAccs`
-- `src/popup/PopupApp.jsx` — detect ACCS and route APS Config buttons accordingly
+| Feature | M2 Luma/Hyva | ACCS/AEM |
+|---|---|---|
+| Validate Apple Pay Certificate | ✅ Works | ✅ Works (domain-based) |
+| Locate Payment Services on Page | ✅ Works | ✅ Works (drop-in selectors, detected via `/config.json`) |
+| Check PayPal SDK | ✅ Works (REST path) | ✅ Works (GraphQL via `paypalSDKHelperAccs.js`) |
+| Get Checkout Payment Methods | ✅ Works (`window.checkoutConfig`) | ✅ Works (GraphQL `GetPaymentConfig`) |
+| Analyze web requests | ✅ Works | ✅ Works |
+| Is Magento Cloud? | ✅ Works | ⛔ Disabled (irrelevant on ACCS) |
+| Is Hyva? | ✅ Works | ⛔ Disabled (no `window.hyva` on EDS) |
+| Is AEM/ACCS Storefront? | ✅ Works | ✅ Works (detects via `/config.json`) |
+| Checkout Mixins | ✅ Works | ⛔ Disabled (no RequireJS on EDS) |
+| Fast Checkout | ✅ Works | ⛔ Disabled (deferred — see 2.8) |
+| Check MageReport | ✅ Works | ⛔ Disabled (M2-specific security scanner) |
+| Get APS Configuration (PDP/Checkout/Cart/Minicart) | ✅ Opens REST endpoint | ✅ GraphQL `GetPaymentConfig` logged to console |
+| Snippets — ACCS equivalents | N/A | ✅ Added to SnippetsApp |
 
 ---
 
-### 2.3 "Locate Payment Services on Page" — ACCS selectors
+### 2.1 ✅ "Check PayPal SDK" — ACCS GraphQL path
 
-**Current code:** `togglePaymentBorders()` in `content.js` — Luma selectors only.
+Two separate inject scripts:
+- **M2:** `paypalSDKHelper.js` — fetches `/customer/section/load?sections=payments`
+- **ACCS:** `paypalSDKHelperAccs.js` — fetches `/config.json` → GraphQL `GetPaymentConfig` → extracts SDK URL
 
-**New ACCS selectors:**
-```js
-// Payment method items
-document.querySelectorAll('.checkout-payment-methods__method')
-// Credit card container
-document.querySelector('.payment-services_paypal-credit-card-container')
-```
+Routing: popup detects `isAccs` via `/config.json` in `getActiveTabConfig()` and sends `accsGetPayPalSdk` message instead of making a direct REST fetch.
 
-Apply `.animated-border` to matched elements (same existing style).
-
-**Files to change:** `public/content.js` — add ACCS branch in `togglePaymentBorders()`.
+**Files changed:**
+- `public/inject/paypalSDKHelperAccs.js` — new ACCS-specific inject script
+- `src/popup/PopupApp.jsx` — `handleGetPayPalSdk` routes to ACCS path when `isAccs`
 
 ---
 
-### 2.4 "Is Magento Cloud?" — fix ACCS false-negative
+### 2.2 ✅ "Get APS Configuration" — GraphQL replacement for ACCS
 
-**Files to change:** `public/content.js` — add `isAccsStorefront` message handler that checks `window.DROPINS`.
+When `isAccs`, the 4 location buttons send `accsGetPaymentConfig` message to `content.js`, which fetches `/config.json` → posts `GetPaymentConfig($location)` → logs full result to the page console.
 
-`src/popup/PopupApp.jsx` — in `handleIsFastly()`, before REST/DNS checks, send a quick `isAccsStorefront` message to the tab; if response is true, show `"ACCS / MAGENTO CLOUD WEBSITE"` and return early.
+Location mapping: PDP → `PRODUCT_DETAIL`, Checkout → `CHECKOUT`, Cart → `CART`, Minicart → `MINICART`.
 
----
-
-### 2.5 Disable M2-only buttons on ACCS
-
-Buttons that are meaningless on ACCS:
-- "Is Hyva?" — no `window.hyva`
-- "Checkout Mixins" — no RequireJS
-- "Check MageReport" — may not apply to ACCS-specific domains
-
-**Approach:** Add `isAccs` to `tabConfig` state (populated on popup open via a quick inject). Pass as a disable condition same as `tabReady`.
-
-**Files to change:** `src/lib/chrome.js` → `getActiveTabConfig()`, `src/popup/PopupApp.jsx` → add `isAccs` state and disable conditions.
+**Files changed:**
+- `public/content.js` — `handleAccsGetPaymentConfig()` handles the message and fetches via GraphQL
+- `src/popup/PopupApp.jsx` — `handleApsConfigOpen` routes to `accsGetPaymentConfig` message when `isAccs`
 
 ---
 
-### 2.6 Snippets — ACCS GraphQL equivalents
+### 2.3 ✅ "Locate Payment Services on Page" — ACCS selectors
 
-Add to `SnippetsApp.jsx`:
+`togglePaymentBorders()` in `content.js` is async and self-detects ACCS by fetching `/config.json` (with `sessionStorage.config` cache). ACCS branch applies `.animated-border` to `.checkout-payment-methods__method` and `.payment-services_paypal-credit-card-container`. M2 branch unchanged.
 
-**Get payment config on ACCS (replaces the `/customer/section/load` approach):**
-```js
-config = await fetch('/config.json').then(r => r.json())
-endpoint = config.public.default['commerce-core-endpoint']
-res = await fetch(endpoint, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    query: `query { getPaymentConfig(location: CHECKOUT) {
-      hosted_fields { sdk_params { name value } is_visible }
-      smart_buttons { sdk_params { name value } is_visible }
-    }}`
-  })
-})
-data = await res.json()
-console.log(JSON.stringify(data.data.getPaymentConfig, null, 2))
-```
+Note: content scripts run in an isolated JS world and cannot read `window.DROPINS`. Detection via `/config.json` fetch is required here.
 
-**Check PaymentServicesSDK on ACCS:**
-```js
-config = await fetch('/config.json').then(r => r.json())
-apiUrl = config.public.default['commerce-core-endpoint'].replace('/graphql', '')
-sdk = new PaymentServicesSDK({ apiUrl })
-await sdk.Payment.init({ location: 'CHECKOUT' })
-console.log('Hosted Fields eligible:', sdk.Payment.creditCard.creditCard().component.isEligible())
-```
+**Files changed:** `public/content.js`
 
 ---
 
-### 2.7 "Get Checkout Payment Methods" — ACCS alternative
+### 2.4 ✅ "Is Magento Cloud?" — disabled on ACCS
 
-**Current code:** Reads `window.checkoutConfig.payment` — not available on ACCS.
+Button is disabled when `isAccs`. The REST+DNS check is M2-specific and would always return false on EDS frontends.
 
-**New ACCS behavior:** Use `GetPaymentConfig(location: CHECKOUT)` and log `code` + `is_visible` for each method.
-
-**Files to change:** `public/inject/getCheckoutPayments.js` — add ACCS branch.
+**Files changed:** `src/popup/PopupApp.jsx`
 
 ---
 
-### 2.8 "Fast Checkout" — ACCS (low priority, defer)
+### 2.5 ✅ Disable M2-only buttons on ACCS
 
-Requires GraphQL product search + `addProductsToCart` mutation + EDS cart update. Significantly more complex than the M2 approach. Defer until all other features are done.
+Buttons disabled when `isAccs`: Is Magento Cloud?, Is Hyva?, Checkout Mixins, Fast Checkout, Check MageReport.
+
+Detection: `getActiveTabConfig()` in `src/lib/chrome.js` fetches `/config.json` from the active tab URL. Presence of `public.default.commerce-core-endpoint` → `isAccs = true`.
+
+**Files changed:** `src/lib/chrome.js`, `src/popup/PopupApp.jsx`
+
+---
+
+### 2.6 ✅ Snippets — ACCS GraphQL equivalents
+
+Added to `SnippetsApp.jsx`:
+- `[ACCS] Get payment config` — `GetPaymentConfig` via GraphQL
+- `[ACCS] Check PaymentServicesSDK eligibility` — uses `commerce-core-endpoint` as `apiUrl` directly
+
+**Files changed:** `src/snippets/SnippetsApp.jsx`
+
+---
+
+### 2.7 ✅ "Get Checkout Payment Methods" — ACCS alternative
+
+`getCheckoutPayments.js` detects ACCS via `/config.json`. If ACCS, posts `GetPaymentConfig(CHECKOUT)` and logs `code` + `is_visible` per method. Falls back to `window.checkoutConfig.payment` for M2.
+
+**Files changed:** `public/inject/getCheckoutPayments.js`
+
+---
+
+### 2.8 ⛔ "Fast Checkout" — ACCS (deferred)
+
+Requires GraphQL product search + `addProductsToCart` mutation + EDS cart update. Button remains disabled on ACCS.
 
 ---
 
 ## Architectural notes
 
-- **ACCS detection in popup:** `getActiveTabConfig()` should be extended to inject a quick check for `window.DROPINS` and return `isAccs: boolean`. This single flag gates all ACCS-specific UI behavior.
+- **ACCS detection:** Fetch `/config.json` and check `public.default.commerce-core-endpoint`. Use `sessionStorage.config` as cache when available. Never use `window.DROPINS` for detection — content scripts cannot access page-level globals (isolated world). Inject scripts (MAIN world) could use `window.DROPINS` but `/config.json` is preferred for consistency across all contexts.
 
-- **GraphQL endpoint in inject scripts:** Always fetch `/config.json` dynamically — do not hardcode. Different merchants have different store IDs in the URL.
+- **GraphQL endpoint:** Always read `commerce-core-endpoint` from `/config.json` dynamically. Never hardcode — store IDs differ per merchant.
 
-- **Optional optimization:** If `/config.json` was already loaded by the storefront, inject scripts can read `sessionStorage.config` first and fall back to fetching `/config.json` only when missing or expired.
-
-- **Keep M2 paths unchanged:** All existing behavior for M2 Luma/Blank and Hyva must remain completely unchanged. ACCS support is purely additive.
+- **Keep M2 paths unchanged:** All existing behavior for M2 Luma/Blank and Hyva remains completely unchanged. ACCS support is purely additive.
 
 - **Two endpoints, two purposes:**
-  - `commerce-core-endpoint` → Payment Services, cart, checkout (Magento GraphQL)
+  - `commerce-core-endpoint` → Payment Services, cart, checkout (Magento GraphQL) — use this for all payment queries
   - `commerce-endpoint` → Product catalog (Edge graph) — not needed for payments

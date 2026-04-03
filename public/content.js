@@ -124,7 +124,7 @@
     document.head?.appendChild(style);
   }
 
-  function togglePaymentBorders() {
+  async function togglePaymentBorders() {
     if (borderAdded) {
       document.querySelectorAll('.animated-border').forEach((element) => {
         element.classList.remove('animated-border');
@@ -135,7 +135,16 @@
 
     ensureBorderStyles();
 
-    if (typeof window.DROPINS !== 'undefined') {
+    let isAccs = false;
+    try {
+      const cached = sessionStorage.getItem('config');
+      const config = cached ? JSON.parse(cached) : await fetch('/config.json').then((r) => r.json());
+      isAccs = Boolean(config?.public?.default?.['commerce-core-endpoint']);
+    } catch {
+      isAccs = false;
+    }
+
+    if (isAccs) {
       // ACCS storefront — drop-in selectors
       document.querySelectorAll('.checkout-payment-methods__method').forEach((el) => {
         el.classList.add('animated-border');
