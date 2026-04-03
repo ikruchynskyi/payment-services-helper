@@ -3,11 +3,23 @@ export async function getActiveTabConfig() {
   const tab = tabs?.[0];
   if (!tab?.url) return null;
   const url = new URL(tab.url);
+
+  let isAccs = false;
+  try {
+    const config = await fetch(`${url.protocol}//${url.hostname}/config.json`)
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null);
+    isAccs = Boolean(config?.public?.default?.['commerce-core-endpoint']);
+  } catch {
+    isAccs = false;
+  }
+
   return {
     activeTab: tab,
     activeTabUrl: tab.url,
     url,
-    domain: url.hostname
+    domain: url.hostname,
+    isAccs,
   };
 }
 

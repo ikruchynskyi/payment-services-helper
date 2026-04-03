@@ -2,6 +2,33 @@ import React from 'react';
 
 const SNIPPETS = [
   {
+    title: '[ACCS] Get payment config (replaces /customer/section/load)',
+    body: `config = await fetch('/config.json').then(r => r.json())
+endpoint = config.public.default['commerce-core-endpoint']
+res = await fetch(endpoint, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ query: \`query {
+    getPaymentConfig(location: CHECKOUT) {
+      hosted_fields { code sdk_params { name value } is_visible }
+      smart_buttons { code sdk_params { name value } is_visible }
+      apple_pay { code sdk_params { name value } is_visible }
+      google_pay { code sdk_params { name value } is_visible }
+    }
+  }\` })
+})
+data = await res.json()
+console.log(JSON.stringify(data.data.getPaymentConfig, null, 2))`
+  },
+  {
+    title: '[ACCS] Check PaymentServicesSDK eligibility',
+    body: `config = await fetch('/config.json').then(r => r.json())
+apiUrl = config.public.default['commerce-core-endpoint']
+sdk = new PaymentServicesSDK({ apiUrl })
+await sdk.Payment.init({ location: 'CHECKOUT' })
+console.log('Hosted Fields eligible:', sdk.Payment.creditCard.creditCard().component.isEligible())`
+  },
+  {
     title: 'Get quote object on checkout/cart pages',
     body: `quote = requirejs("Magento_Checkout/js/model/quote")
 url = BASE_URL + "rest/default/V1/guest-carts/" + quote.getQuoteId() + "/totals"

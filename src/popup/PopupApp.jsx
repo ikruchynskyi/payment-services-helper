@@ -50,6 +50,7 @@ function PopupApp() {
   }, []);
 
   const tabReady = useMemo(() => Boolean(tabConfig?.activeTab?.id), [tabConfig]);
+  const isAccs = useMemo(() => tabConfig?.isAccs ?? false, [tabConfig]);
 
   const handleTracked = (id, handler) => async (event) => {
     event?.preventDefault?.();
@@ -121,6 +122,11 @@ function PopupApp() {
   const handleIsFastly = handleTracked('isFastly', async () => {
     if (!tabConfig) return;
 
+    if (isAccs) {
+      alert('ACCS / MAGENTO CLOUD WEBSITE');
+      return;
+    }
+
     if (tabConfig.domain.includes('magentosite.cloud')) {
       alert('MAGENTO CLOUD WEBSITE');
       return;
@@ -186,9 +192,14 @@ function PopupApp() {
     }
   };
 
-  const handleGetPayPalSdk = handleTracked('getPayPalSDK', runGetPayPalSdk);
-  const handleAccsGetPayPalSdk = handleTracked('accs-getPayPalSDK', runGetPayPalSdk);
-
+  const handleGetPayPalSdk = handleTracked('getPayPalSDK', async () => {
+    if (isAccs) {
+      if (!tabReady) return;
+      sendToActiveTab(tabConfig.activeTab.id, { message: 'accsGetPayPalSdk' });
+    } else {
+      await runGetPayPalSdk();
+    }
+  });
   const handleWebReqs = handleTracked('webReqs', async () => {
     setWebReqsLoading((prev) => !prev);
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -209,6 +220,13 @@ function PopupApp() {
   const handleApsConfigOpen = (locationId) =>
     handleTracked(locationId, async () => {
       if (!tabConfig) return;
+      if (isAccs) {
+        sendToActiveTab(tabConfig.activeTab.id, {
+          message: 'accsGetPaymentConfig',
+          location: locationId.toUpperCase()
+        });
+        return;
+      }
       const url = buildPaymentsConfigUrl(tabConfig, locationId);
       openNewTab(url);
     });
@@ -256,27 +274,27 @@ function PopupApp() {
         >
           Analyze web requests
         </button>
-        <button id="isFastly" onClick={handleIsFastly} className="action-link">
+        <button id="isFastly" onClick={handleIsFastly} className="action-link" disabled={!tabConfig || isAccs}>
           Is Magento Cloud ?
         </button>
-        <button id="isHyva" onClick={handleIsHyva} className="action-link" disabled={!tabReady}>
+        <button id="isHyva" onClick={handleIsHyva} className="action-link" disabled={!tabReady || isAccs}>
           Is Hyva?
         </button>
         <button id="isAEM" onClick={handleIsAem} className="action-link" disabled={!tabReady}>
           Is AEM Storefront?
         </button>
-        <button id="getMixins" onClick={handleGetMixins} className="action-link" disabled={!tabReady}>
+        <button id="getMixins" onClick={handleGetMixins} className="action-link" disabled={!tabReady || isAccs}>
           Checkout Mixins
         </button>
         <button
           id="fastCheckout"
           onClick={handleFastCheckout}
           className="action-link"
-          disabled={!tabReady}
+          disabled={!tabReady || isAccs}
         >
           Fast checkout
         </button>
-        <button id="magereport" onClick={handleMageReport} className="action-link" disabled={!tabReady}>
+        <button id="magereport" onClick={handleMageReport} className="action-link" disabled={!tabReady || isAccs}>
           Check MageReport
         </button>
         <div className="aps-config-group">
@@ -299,30 +317,6 @@ function PopupApp() {
           onClick={handleOpenSidebar('openDocs', 'docs-sidenav')}
         >
           Documentations
-        </button>
-        <button
-          id="storefrontUtils"
-          className="action-link"
-          onClick={handleOpenSidebar('storefrontUtils', 'storefront-utils-container')}
-        >
-          Storefront utils
-        </button>
-      </div>
-
-      <div className={`sidenav ${sidebar === 'storefront-utils-container' ? 'open' : ''}`}>
-        <button
-          id="closebtn-storefront"
-          className="closebtn"
-          onClick={handleCloseSidebar('closebtn-storefront')}
-        >
-          &times;
-        </button>
-        <button
-          id="accs-getPayPalSDK"
-          onClick={handleAccsGetPayPalSdk}
-          className="action-link"
-        >
-          Check PayPal SDK
         </button>
       </div>
 

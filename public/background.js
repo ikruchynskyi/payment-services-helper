@@ -86,7 +86,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         const currentTab = tabs[0];
         if (!currentTab.url) return;
         const currentUrl = new URL(currentTab.url);
-        const newUrl = new URL('/checkout/index', currentUrl.origin);
+        const newUrl = new URL('/checkout', currentUrl.origin);
         chrome.tabs.update(currentTab.id, { url: newUrl.toString() });
       });
     }, 3000);

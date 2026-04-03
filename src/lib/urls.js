@@ -31,5 +31,5 @@ export function buildPayPalSdkCheckUrl(tabConfig) {
 
 export function buildRestCountriesUrl(tabConfig) {
   if (!tabConfig?.url || !tabConfig?.domain) return '';
-  return `${tabConfig.url.protocol}//${tabConfig.domain}/rest/default/V1/directory/countries`;
+  return `${tabConfig.url.protocol}//${tabConfig.domain}/rest/V1/directory/countries`;
 }
