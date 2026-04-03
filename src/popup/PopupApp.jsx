@@ -50,6 +50,7 @@ function PopupApp() {
   }, []);
 
   const tabReady = useMemo(() => Boolean(tabConfig?.activeTab?.id), [tabConfig]);
+  const isAccs = useMemo(() => tabConfig?.isAccs ?? false, [tabConfig]);
 
   const handleTracked = (id, handler) => async (event) => {
     event?.preventDefault?.();
@@ -121,6 +122,11 @@ function PopupApp() {
   const handleIsFastly = handleTracked('isFastly', async () => {
     if (!tabConfig) return;
 
+    if (isAccs) {
+      alert('ACCS / MAGENTO CLOUD WEBSITE');
+      return;
+    }
+
     if (tabConfig.domain.includes('magentosite.cloud')) {
       alert('MAGENTO CLOUD WEBSITE');
       return;
@@ -187,7 +193,10 @@ function PopupApp() {
   };
 
   const handleGetPayPalSdk = handleTracked('getPayPalSDK', runGetPayPalSdk);
-  const handleAccsGetPayPalSdk = handleTracked('accs-getPayPalSDK', runGetPayPalSdk);
+  const handleAccsGetPayPalSdk = handleTracked('accs-getPayPalSDK', async () => {
+    if (!tabReady) return;
+    sendToActiveTab(tabConfig.activeTab.id, { message: 'accsGetPayPalSdk' });
+  });
 
   const handleWebReqs = handleTracked('webReqs', async () => {
     setWebReqsLoading((prev) => !prev);
@@ -209,6 +218,13 @@ function PopupApp() {
   const handleApsConfigOpen = (locationId) =>
     handleTracked(locationId, async () => {
       if (!tabConfig) return;
+      if (isAccs) {
+        sendToActiveTab(tabConfig.activeTab.id, {
+          message: 'accsGetPaymentConfig',
+          location: locationId.toUpperCase()
+        });
+        return;
+      }
       const url = buildPaymentsConfigUrl(tabConfig, locationId);
       openNewTab(url);
     });
@@ -259,20 +275,20 @@ function PopupApp() {
         <button id="isFastly" onClick={handleIsFastly} className="action-link">
           Is Magento Cloud ?
         </button>
-        <button id="isHyva" onClick={handleIsHyva} className="action-link" disabled={!tabReady}>
+        <button id="isHyva" onClick={handleIsHyva} className="action-link" disabled={!tabReady || isAccs}>
           Is Hyva?
         </button>
         <button id="isAEM" onClick={handleIsAem} className="action-link" disabled={!tabReady}>
           Is AEM Storefront?
         </button>
-        <button id="getMixins" onClick={handleGetMixins} className="action-link" disabled={!tabReady}>
+        <button id="getMixins" onClick={handleGetMixins} className="action-link" disabled={!tabReady || isAccs}>
           Checkout Mixins
         </button>
         <button
           id="fastCheckout"
           onClick={handleFastCheckout}
           className="action-link"
-          disabled={!tabReady}
+          disabled={!tabReady || isAccs}
         >
           Fast checkout
         </button>

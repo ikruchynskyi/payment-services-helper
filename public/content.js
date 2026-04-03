@@ -135,6 +135,21 @@
 
     ensureBorderStyles();
 
+    if (typeof window.DROPINS !== 'undefined') {
+      // ACCS storefront — drop-in selectors
+      document.querySelectorAll('.checkout-payment-methods__method').forEach((el) => {
+        el.classList.add('animated-border');
+        borderAdded = true;
+      });
+      const ccContainer = document.querySelector('.payment-services_paypal-credit-card-container');
+      if (ccContainer) {
+        ccContainer.classList.add('animated-border');
+        borderAdded = true;
+      }
+      return;
+    }
+
+    // Magento 2 theme (Luma / Hyva)
     const paymentMethods = document.getElementsByName('payment[method]');
     for (const method of paymentMethods) {
       if (method?.id?.includes('payment_services')) {
@@ -147,6 +162,36 @@
     for (const button of smartButtons) {
       button.classList.add('animated-border');
       borderAdded = true;
+    }
+  }
+
+  async function handleAccsGetPaymentConfig(location) {
+    const GET_PAYMENT_CONFIG_QUERY = `
+      query GetPaymentConfig($location: PaymentLocation!) {
+        getPaymentConfig(location: $location) {
+          hosted_fields { code sdk_params { name value } is_visible payment_source three_ds_mode is_vault_enabled }
+          smart_buttons { code sdk_params { name value } is_visible display_message }
+          apple_pay { code sdk_params { name value } is_visible }
+          google_pay { code sdk_params { name value } is_visible }
+        }
+      }
+    `;
+    try {
+      const config = await fetch('/config.json').then((r) => r.json());
+      const endpoint = config?.public?.default?.['commerce-core-endpoint'];
+      if (!endpoint) {
+        console.error('[APS Helper] commerce-core-endpoint not found in /config.json');
+        return;
+      }
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: GET_PAYMENT_CONFIG_QUERY, variables: { location } })
+      });
+      const data = await response.json();
+      console.log(`[APS Helper] GetPaymentConfig(${location}):`, JSON.stringify(data.data?.getPaymentConfig, null, 2));
+    } catch (err) {
+      console.error('[APS Helper] Failed to get payment config:', err);
     }
   }
 
@@ -231,10 +276,13 @@
     }
   }
 
-  function handleMessage(request) {
+  function handleMessage(request, _sender, sendResponse) {
     if (!request?.message) return;
 
     switch (request.message) {
+      case 'isAccsStorefront':
+        sendResponse({ isAccs: typeof window.DROPINS !== 'undefined' });
+        return;
       case 'checkEnabledPaymentMethods':
         togglePaymentBorders();
         break;
@@ -252,6 +300,12 @@
         break;
       case 'getMixins':
         injectScript(chrome.runtime.getURL('inject/getMixins.js'), 'body');
+        break;
+      case 'accsGetPayPalSdk':
+        injectScript(chrome.runtime.getURL('inject/paypalSDKHelperAccs.js'), 'body');
+        break;
+      case 'accsGetPaymentConfig':
+        handleAccsGetPaymentConfig(request.location);
         break;
       case 'clickAddToCart':
         handleClickAddToCart();

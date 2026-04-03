@@ -1,13 +1,30 @@
+function sendToActiveTabAsync(tabId, message) {
+  return new Promise((resolve) => {
+    chrome.tabs.sendMessage(tabId, message, (response) => {
+      if (chrome.runtime.lastError) resolve(null);
+      else resolve(response);
+    });
+  });
+}
+
 export async function getActiveTabConfig() {
   const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
   const tab = tabs?.[0];
   if (!tab?.url) return null;
   const url = new URL(tab.url);
+
+  let isAccs = false;
+  if (tab.id) {
+    const response = await sendToActiveTabAsync(tab.id, { message: 'isAccsStorefront' }).catch(() => null);
+    isAccs = response?.isAccs ?? false;
+  }
+
   return {
     activeTab: tab,
     activeTabUrl: tab.url,
     url,
-    domain: url.hostname
+    domain: url.hostname,
+    isAccs,
   };
 }
 

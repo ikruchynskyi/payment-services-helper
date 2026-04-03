@@ -31,7 +31,8 @@
         "inject/getMixins.js",
         "inject/errorLogger.js",
         "inject/isAEM.js",
-        "inject/paypalSDKHelper.js"
+        "inject/paypalSDKHelper.js",
+        "inject/paypalSDKHelperAccs.js"
       ],
       "matches": ["<all_urls>"]
     }
