@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Adobe Payment Services Helper",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Detects and prints useful information into browser console.",
   "permissions": ["activeTab","scripting","tabs","storage","debugger", "unlimitedStorage", "browsingData", "notifications", "downloads"],
   "action": {
