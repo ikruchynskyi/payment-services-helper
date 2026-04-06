@@ -30,6 +30,21 @@
   const errors = [];
   const errorsLimit = 100;
 
+  async function getStorefrontConfig() {
+    try {
+      const cached = sessionStorage.getItem('config');
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    } catch {
+      // Ignore invalid cached config and fall back to a fresh fetch.
+    }
+
+    return fetch('/config.json')
+      .then((response) => (response.ok ? response.json() : null))
+      .catch(() => null);
+  }
+
   function handleNewError(error) {
     const lastError = errors[errors.length - 1];
     const isSameAsLast =
@@ -91,12 +106,30 @@
       return;
     }
 
-    console.log('Recent Transactions: ', splunkUrls.recentTransaction.replace(MERCHANT_ID_PLACEHOLDER, merchantId));
-    console.log('Recent Webhook events: ', splunkUrls.webHookList.replace(MERCHANT_ID_PLACEHOLDER, merchantId));
-    console.log('Latest errors: ', splunkUrls.latestErrors.replace(MERCHANT_ID_PLACEHOLDER, merchantId));
-    console.log('Ingress requests: ', splunkUrls.ingressRequests.replace(MERCHANT_ID_PLACEHOLDER, merchantId));
-    console.log('Transaction stats:', splunkUrls.transactionStat.replace(MERCHANT_ID_PLACEHOLDER, merchantId));
-    console.log('Latest PayPal DebugIds: :', splunkUrls.debugIds.replace(MERCHANT_ID_PLACEHOLDER, merchantId));
+    console.log(
+      'Recent Transactions: ',
+      splunkUrls.recentTransaction.replace(MERCHANT_ID_PLACEHOLDER, merchantId)
+    );
+    console.log(
+      'Recent Webhook events: ',
+      splunkUrls.webHookList.replace(MERCHANT_ID_PLACEHOLDER, merchantId)
+    );
+    console.log(
+      'Latest errors: ',
+      splunkUrls.latestErrors.replace(MERCHANT_ID_PLACEHOLDER, merchantId)
+    );
+    console.log(
+      'Ingress requests: ',
+      splunkUrls.ingressRequests.replace(MERCHANT_ID_PLACEHOLDER, merchantId)
+    );
+    console.log(
+      'Transaction stats:',
+      splunkUrls.transactionStat.replace(MERCHANT_ID_PLACEHOLDER, merchantId)
+    );
+    console.log(
+      'Latest PayPal DebugIds: :',
+      splunkUrls.debugIds.replace(MERCHANT_ID_PLACEHOLDER, merchantId)
+    );
   }
 
   function observePaypalScripts() {
@@ -137,8 +170,7 @@
 
     let isAccs = false;
     try {
-      const cached = sessionStorage.getItem('config');
-      const config = cached ? JSON.parse(cached) : await fetch('/config.json').then((r) => r.json());
+      const config = await getStorefrontConfig();
       isAccs = Boolean(config?.public?.default?.['commerce-core-endpoint']);
     } catch {
       isAccs = false;
@@ -186,8 +218,7 @@
       }
     `;
     try {
-      const cached = sessionStorage.getItem('config');
-      const config = cached ? JSON.parse(cached) : await fetch('/config.json').then((r) => r.json());
+      const config = await getStorefrontConfig();
       const endpoint = config?.public?.default?.['commerce-core-endpoint'];
       if (!endpoint) {
         console.error('[APS Helper] commerce-core-endpoint not found in /config.json');
@@ -199,7 +230,10 @@
         body: JSON.stringify({ query: GET_PAYMENT_CONFIG_QUERY, variables: { location } })
       });
       const data = await response.json();
-      console.log(`[APS Helper] GetPaymentConfig(${location}):`, JSON.stringify(data.data?.getPaymentConfig, null, 2));
+      console.log(
+        `[APS Helper] GetPaymentConfig(${location}):`,
+        JSON.stringify(data.data?.getPaymentConfig, null, 2)
+      );
     } catch (err) {
       console.error('[APS Helper] Failed to get payment config:', err);
     }
@@ -249,8 +283,7 @@
     const timer = setInterval(() => {
       const form = document.getElementById('product_addtocart_form');
       const submitButton =
-        form?.querySelector('[type=submit]') ||
-        document.querySelector('#product-addtocart-button');
+        form?.querySelector('[type=submit]') || document.querySelector('#product-addtocart-button');
       const ready = submitButton && !submitButton.disabled && submitButton.offsetParent !== null;
 
       if (ready) {
@@ -291,8 +324,10 @@
 
     switch (request.message) {
       case 'isAccsStorefront':
-        sendResponse({ isAccs: typeof window.DROPINS !== 'undefined' });
-        return;
+        getStorefrontConfig().then((config) => {
+          sendResponse({ isAccs: Boolean(config?.public?.default?.['commerce-core-endpoint']) });
+        });
+        return true;
       case 'checkEnabledPaymentMethods':
         togglePaymentBorders();
         break;

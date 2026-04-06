@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { trackEvent } from '../lib/analytics.js';
+import { trackEvent, trackPopupDetection } from '../lib/analytics.js';
 import { getActiveTabConfig, openNewTab, openPopupWindow, sendToActiveTab } from '../lib/chrome.js';
 import {
   buildApplePayCertUrl,
@@ -46,7 +46,10 @@ function PopupApp() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    getActiveTabConfig().then(setTabConfig);
+    getActiveTabConfig().then((config) => {
+      setTabConfig(config);
+      void trackPopupDetection(config);
+    });
   }, []);
 
   const tabReady = useMemo(() => Boolean(tabConfig?.activeTab?.id), [tabConfig]);
@@ -54,7 +57,7 @@ function PopupApp() {
 
   const handleTracked = (id, handler) => async (event) => {
     event?.preventDefault?.();
-    await trackEvent(id);
+    void trackEvent(id, tabConfig);
     await handler();
   };
 
@@ -139,16 +142,18 @@ function PopupApp() {
 
     try {
       const restUrl = buildRestCountriesUrl(tabConfig);
-      const restOk = await fetch(restUrl).then((res) => res.ok).catch(() => false);
+      const restOk = await fetch(restUrl)
+        .then((res) => res.ok)
+        .catch(() => false);
 
       if (!restOk) {
         alert('NOT MAGENTO. PROBABLY PWA WEBSITE');
         return;
       }
 
-      const response = await fetch(`https://networkcalc.com/api/dns/lookup/${tabConfig.domain}`).catch(
-        handleError
-      );
+      const response = await fetch(
+        `https://networkcalc.com/api/dns/lookup/${tabConfig.domain}`
+      ).catch(handleError);
       if (!response?.ok) return;
       const json = await response.json();
       const cname = json?.records?.CNAME?.[0]?.address;
@@ -274,16 +279,31 @@ function PopupApp() {
         >
           Analyze web requests
         </button>
-        <button id="isFastly" onClick={handleIsFastly} className="action-link" disabled={!tabConfig || isAccs}>
+        <button
+          id="isFastly"
+          onClick={handleIsFastly}
+          className="action-link"
+          disabled={!tabConfig || isAccs}
+        >
           Is Magento Cloud ?
         </button>
-        <button id="isHyva" onClick={handleIsHyva} className="action-link" disabled={!tabReady || isAccs}>
+        <button
+          id="isHyva"
+          onClick={handleIsHyva}
+          className="action-link"
+          disabled={!tabReady || isAccs}
+        >
           Is Hyva?
         </button>
         <button id="isAEM" onClick={handleIsAem} className="action-link" disabled={!tabReady}>
           Is AEM Storefront?
         </button>
-        <button id="getMixins" onClick={handleGetMixins} className="action-link" disabled={!tabReady || isAccs}>
+        <button
+          id="getMixins"
+          onClick={handleGetMixins}
+          className="action-link"
+          disabled={!tabReady || isAccs}
+        >
           Checkout Mixins
         </button>
         <button
@@ -294,7 +314,12 @@ function PopupApp() {
         >
           Fast checkout
         </button>
-        <button id="magereport" onClick={handleMageReport} className="action-link" disabled={!tabReady || isAccs}>
+        <button
+          id="magereport"
+          onClick={handleMageReport}
+          className="action-link"
+          disabled={!tabReady}
+        >
           Check MageReport
         </button>
         <div className="aps-config-group">
