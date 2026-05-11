@@ -171,7 +171,10 @@
     let isAccs = false;
     try {
       const config = await getStorefrontConfig();
-      isAccs = Boolean(config?.public?.default?.['commerce-core-endpoint']);
+      isAccs = Boolean(
+        config?.public?.default?.['commerce-core-endpoint'] ??
+          config?.public?.default?.['commerce-endpoint']
+      );
     } catch {
       isAccs = false;
     }
@@ -219,9 +222,13 @@
     `;
     try {
       const config = await getStorefrontConfig();
-      const endpoint = config?.public?.default?.['commerce-core-endpoint'];
+      const endpoint =
+        config?.public?.default?.['commerce-core-endpoint'] ??
+        config?.public?.default?.['commerce-endpoint'];
       if (!endpoint) {
-        console.error('[APS Helper] commerce-core-endpoint not found in /config.json');
+        console.error(
+          '[APS Helper] commerce-core-endpoint / commerce-endpoint not found in /config.json'
+        );
         return;
       }
       const response = await fetch(endpoint, {
@@ -325,7 +332,12 @@
     switch (request.message) {
       case 'isAccsStorefront':
         getStorefrontConfig().then((config) => {
-          sendResponse({ isAccs: Boolean(config?.public?.default?.['commerce-core-endpoint']) });
+          sendResponse({
+            isAccs: Boolean(
+              config?.public?.default?.['commerce-core-endpoint'] ??
+                config?.public?.default?.['commerce-endpoint']
+            )
+          });
         });
         return true;
       case 'checkEnabledPaymentMethods':

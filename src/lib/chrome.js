@@ -9,7 +9,10 @@ export async function getActiveTabConfig() {
     const config = await fetch(`${url.protocol}//${url.hostname}/config.json`)
       .then((r) => (r.ok ? r.json() : null))
       .catch(() => null);
-    isAccs = Boolean(config?.public?.default?.['commerce-core-endpoint']);
+    isAccs = Boolean(
+      config?.public?.default?.['commerce-core-endpoint'] ??
+        config?.public?.default?.['commerce-endpoint']
+    );
   } catch {
     isAccs = false;
   }

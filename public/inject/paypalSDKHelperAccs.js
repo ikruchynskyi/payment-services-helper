@@ -42,7 +42,10 @@
 
   async function getCommerceEndpoint() {
     const config = await getConfig();
-    return config?.public?.default?.['commerce-core-endpoint'];
+    return (
+      config?.public?.default?.['commerce-core-endpoint'] ??
+      config?.public?.default?.['commerce-endpoint']
+    );
   }
 
   async function fetchPaymentConfig(endpoint) {
@@ -163,7 +166,9 @@
     try {
       const endpoint = await getCommerceEndpoint();
       if (!endpoint) {
-        console.error('[APS Helper] commerce-core-endpoint not found in /config.json');
+        console.error(
+          '[APS Helper] commerce-core-endpoint / commerce-endpoint not found in /config.json'
+        );
         return;
       }
 

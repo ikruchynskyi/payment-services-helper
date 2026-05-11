@@ -4,7 +4,7 @@ const SNIPPETS = [
   {
     title: '[ACCS] Get payment config (replaces /customer/section/load)',
     body: `config = await fetch('/config.json').then(r => r.json())
-endpoint = config.public.default['commerce-core-endpoint']
+endpoint = config.public.default['commerce-core-endpoint'] ?? config.public.default['commerce-endpoint']
 res = await fetch(endpoint, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
@@ -23,7 +23,7 @@ console.log(JSON.stringify(data.data.getPaymentConfig, null, 2))`
   {
     title: '[ACCS] Check PaymentServicesSDK eligibility',
     body: `config = await fetch('/config.json').then(r => r.json())
-apiUrl = config.public.default['commerce-core-endpoint']
+apiUrl = config.public.default['commerce-core-endpoint'] ?? config.public.default['commerce-endpoint']
 sdk = new PaymentServicesSDK({ apiUrl })
 await sdk.Payment.init({ location: 'CHECKOUT' })
 console.log('Hosted Fields eligible:', sdk.Payment.creditCard.creditCard().component.isEligible())`

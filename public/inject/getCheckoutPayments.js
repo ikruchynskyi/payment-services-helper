@@ -22,7 +22,9 @@
 
   getConfig()
     .then((config) => {
-      const endpoint = config?.public?.default?.['commerce-core-endpoint'];
+      const endpoint =
+        config?.public?.default?.['commerce-core-endpoint'] ??
+        config?.public?.default?.['commerce-endpoint'];
       if (!endpoint) {
         showM2PaymentMethods();
         return;
