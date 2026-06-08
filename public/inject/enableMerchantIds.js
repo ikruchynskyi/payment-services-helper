@@ -5,12 +5,12 @@
     {
       env: 'sandbox',
       selector:
-        '#payment_recommended_solutions_magento_payments_legacy_general_configuration_sandbox_merchant_id'
+        '#payment_us_recommended_solutions_magento_payments_legacy_general_configuration_sandbox_merchant_id'
     },
     {
       env: 'production',
       selector:
-        '#payment_recommended_solutions_magento_payments_legacy_general_configuration_production_merchant_id'
+        '#payment_us_recommended_solutions_magento_payments_legacy_general_configuration_production_merchant_id'
     }
   ];
 
