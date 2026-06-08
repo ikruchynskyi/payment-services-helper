@@ -361,6 +361,9 @@
       case 'accsGetPayPalSdk':
         injectScript(chrome.runtime.getURL('inject/paypalSDKHelperAccs.js'), 'body');
         break;
+      case 'editMerchantIds':
+        injectScript(chrome.runtime.getURL('inject/enableMerchantIds.js'), 'body');
+        break;
       case 'accsGetPaymentConfig':
         handleAccsGetPaymentConfig(request.location);
         break;

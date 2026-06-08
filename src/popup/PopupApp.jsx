@@ -222,6 +222,11 @@ function PopupApp() {
     openNewTab(buildMageReportUrl(tabConfig.domain));
   });
 
+  const handleEditMerchantIds = handleTracked('editMerchantIds', async () => {
+    if (!tabReady) return;
+    sendToActiveTab(tabConfig.activeTab.id, { message: 'editMerchantIds' });
+  });
+
   const handleApsConfigOpen = (locationId) =>
     handleTracked(locationId, async () => {
       if (!tabConfig) return;
@@ -321,6 +326,14 @@ function PopupApp() {
           disabled={!tabReady}
         >
           Check MageReport
+        </button>
+        <button
+          id="editMerchantIds"
+          onClick={handleEditMerchantIds}
+          className="action-link"
+          disabled={!tabReady}
+        >
+          Edit MerchantIDs
         </button>
         <div className="aps-config-group">
           <div className="aps-title">Get APS configuration for:</div>
